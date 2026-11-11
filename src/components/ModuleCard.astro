@@ -1,0 +1,8 @@
+---
+const { href, icon, title, description, tone = 'purple', action } = Astro.props;
+---
+<a class={`module-card ${tone}`} href={href}>
+  <span class="module-icon">{icon}</span>
+  <span class="module-copy"><strong>{title}</strong><small>{description}</small></span>
+  <span class="module-arrow">↗</span>
+</a>

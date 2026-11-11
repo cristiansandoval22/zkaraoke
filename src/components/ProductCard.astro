@@ -1,0 +1,20 @@
+---
+const { product } = Astro.props;
+---
+<article class="product-card" data-product-card={product.id}>
+  <div class="product-image" style={`background-image:url('${product.image}')`}>
+    {!product.available && <span class="unavailable">Agotado</span>}
+  </div>
+  <div class="product-body">
+    <div class="product-meta"><span>{product.category}</span><span class:list={['availability', product.available ? 'is-available' : '']}>{product.available ? 'Disponible' : 'No disponible'}</span></div>
+    <h3>{product.name}</h3>
+    <p>{product.description}</p>
+    <div class="product-bottom"><strong>S/ {product.price.toFixed(2)}</strong>
+      <div class="quantity-control" data-quantity-control={product.id}>
+        <button type="button" data-qty-minus={product.id} aria-label="Quitar uno">−</button>
+        <span data-qty-value={product.id}>0</span>
+        <button type="button" data-qty-plus={product.id} aria-label="Agregar uno" disabled={!product.available}>+</button>
+      </div>
+    </div>
+  </div>
+</article>

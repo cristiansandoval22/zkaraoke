@@ -1,0 +1,17 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHeading from '../components/PageHeading.astro';
+---
+<BaseLayout title="Resumen musical | Karaoke & Bar">
+  <a class="back-link" href="/canciones">← Volver al catálogo</a>
+  <PageHeading eyebrow="CASI LISTO" title="Tu pedido musical." description="Revisa tu selección antes de enviarla al DJ." />
+  <div class="summary-card">
+    <div class="summary-card-head"><strong>🎤 Canciones elegidas</strong><span id="music-summary-count">0 de 2 canciones seleccionadas</span></div>
+    <div id="music-summary-list"></div>
+  </div>
+  <label class="field-label" for="music-note">Dedicatoria o nota <span>Opcional</span></label>
+  <textarea id="music-note" class="textarea" rows="3" placeholder="Ej. Esta canción va para mis amigos de la mesa..."></textarea>
+  <div class="notice">El DJ recibirá tu pedido con la ubicación seleccionada. El orden de reproducción dependerá de la cola musical.</div>
+  <button class="btn btn-whatsapp btn-full" id="send-music">Enviar pedido de música por WhatsApp <span>↗</span></button>
+  <script>import '../scripts/app.js';</script>
+</BaseLayout>

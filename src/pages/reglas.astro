@@ -1,0 +1,101 @@
+---
+const businessName = 'Z-Karaoke';
+const whatsapp = '51944584827';
+const whatsappUrl = `https://wa.me/${whatsapp}`;
+const logoUrl = 'https://mpupgegoxzxwopxnqlaq.supabase.co/storage/v1/object/public/menu-images/fd204b46-b537-4549-a662-59d647162e6d.png';
+---
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#100d1c" />
+    <meta name="description" content="Conoce las reglas de participación de Z-Karaoke. Organiza tus canciones, disfruta con tu mesa y vive una gran noche." />
+    <title>Reglas de la casa | Z-Karaoke</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <main class="page-shell">
+      <header class="topbar">
+        <a class="brand" href="#inicio" aria-label="Z-Karaoke, inicio">
+          <img src={logoUrl} alt="Logo de Z-Karaoke" />
+          <span><strong>Z-KARAOKE</strong><small>LA NOCHE ES TUYA</small></span>
+        </a>
+        <a class="top-link" href={whatsappUrl} target="_blank" rel="noreferrer">Contáctanos <span>↗</span></a>
+      </header>
+
+      <section class="hero" id="inicio">
+        <div class="hero-glow glow-one"></div><div class="hero-glow glow-two"></div>
+        <div class="hero-copy">
+          <span class="eyebrow"><i></i> BIENVENIDOS A Z-KARAOKE</span>
+          <h1>BUENA ONDA,<br /><em>BUENA MÚSICA</em><br />Y GRANDES NOCHES.</h1>
+          <p>Queremos que todos disfruten, canten y compartan. Estas son nuestras reglas para que la diversión nunca se detenga.</p>
+          <a class="hero-button" href="#reglas">Conoce las reglas <span>↓</span></a>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <div class="disc disc-back"></div><div class="disc disc-front"><div class="disc-center">Z</div></div>
+          <span class="music-note note-one">♫</span><span class="music-note note-two">♪</span>
+          <div class="sound-wave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <span class="art-caption">YOUR NIGHT<br />YOUR STAGE</span>
+        </div>
+        <div class="hero-bottom"><span>RIOJA · SAN MARTÍN</span><span>DESLIZA PARA DESCUBRIR <b>↓</b></span></div>
+      </section>
+
+      <section class="rules-section" id="reglas">
+        <div class="section-heading">
+          <span class="eyebrow">ASÍ DISFRUTAMOS TODOS</span>
+          <h2>LAS REGLAS<br /><em>DE LA CASA.</em></h2>
+          <p>Son sencillas: respeta los turnos, disfruta con tu gente y deja que la música nos una.</p>
+        </div>
+        <div class="rules-grid">
+          <article class="rule-card featured">
+            <div class="rule-number">01</div><div class="rule-icon">🎤</div>
+            <span class="rule-tag">TU PRIMER TURNO</span>
+            <h3>Dos canciones<br />por mesa.</h3>
+            <p>Cada mesa cuenta inicialmente con <strong>2 canciones</strong> para participar. ¡Elige bien esos temazos!</p>
+            <div class="song-count"><b>02</b><span>CANCIONES<br />INICIALES</span></div>
+          </article>
+          <article class="rule-card">
+            <div class="rule-number">02</div><div class="rule-icon">✨</div>
+            <span class="rule-tag">MÁS CONSUMO, MÁS PRIORIDAD</span>
+            <h3>Tu consumo<br />cuenta.</h3>
+            <p>Las mesas que realizan un mayor consumo dentro del local pueden obtener <strong>prioridad en los turnos</strong> y la oportunidad de cantar más canciones.</p>
+          </article>
+          <article class="rule-card">
+            <div class="rule-number">03</div><div class="rule-icon">🕒</div>
+            <span class="rule-tag">ORDEN Y ORGANIZACIÓN</span>
+            <h3>Respetemos<br />los turnos.</h3>
+            <p>El equipo de Z-Karaoke organiza la participación según los pedidos, la prioridad de cada mesa y el movimiento de la noche.</p>
+          </article>
+          <article class="rule-card">
+            <div class="rule-number">04</div><div class="rule-icon">🫶</div>
+            <span class="rule-tag">BUENA VIBRA SIEMPRE</span>
+            <h3>Venimos a<br />pasarla genial.</h3>
+            <p>Respeta a las demás mesas, comparte el espacio y anima a quienes están cantando. ¡Aquí todos somos parte del show!</p>
+          </article>
+        </div>
+        <div class="priority-note"><span class="note-icon">💜</span><p><strong>Sobre la prioridad:</strong> cantar más canciones o acceder a un turno preferente depende del consumo realizado en el local y de la disponibilidad durante la noche. Nuestro equipo te orientará.</p></div>
+      </section>
+
+      <section class="closing">
+        <div class="closing-spark">✦</div>
+        <span class="eyebrow">LA NOCHE RECIÉN COMIENZA</span>
+        <h2>SUELTA LA VOZ.<br /><em>DISFRUTA EL MOMENTO.</em></h2>
+        <p>Gracias por elegir Z-Karaoke. Prepara tu canción favorita, reúne a tu gente y haz de esta noche un recuerdo inolvidable.</p>
+        <a class="closing-button" href={whatsappUrl} target="_blank" rel="noreferrer">¿Tienes alguna consulta? <span>Escríbenos ↗</span></a>
+      </section>
+
+      <footer class="footer"><a class="footer-brand" href="#inicio">Z-KARAOKE<span> · RIOJA</span></a><span>HECHO PARA DISFRUTAR 🎶</span><a href="#inicio">VOLVER ARRIBA ↑</a></footer>
+    </main>
+  </body>
+</html>
+
+<style>
+  :root{font-family:'DM Sans',sans-serif;color:#f8f5ff;background:#100d1c;font-synthesis:none;text-rendering:optimizeLegibility;--purple:#a88aff;--pink:#ff76c8;--muted:#aaa3bd;--line:#342b49}
+  *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;min-width:320px;background:#100d1c;color:#f8f5ff}.page-shell{max-width:1440px;margin:0 auto;overflow:hidden;background:radial-gradient(ellipse at 85% 10%,#39205033,transparent 32%),#100d1c}.topbar{height:84px;padding:0 clamp(22px,7vw,100px);display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #ffffff12}.brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:white}.brand img{width:43px;height:43px;object-fit:contain;border-radius:12px}.brand strong,.brand small{display:block}.brand strong{font:800 13px Outfit;letter-spacing:2px}.brand small{font-size:8px;letter-spacing:2.1px;color:#aaa1c0;margin-top:4px}.top-link{font-size:11px;color:#e8e0f7;text-decoration:none;border:1px solid #514364;border-radius:30px;padding:11px 16px}.top-link span{color:var(--pink);margin-left:8px}.hero{position:relative;min-height:610px;padding:100px clamp(22px,10vw,145px) 70px;display:flex;align-items:center;isolation:isolate;background:linear-gradient(105deg,#171126 0%,#171126ed 48%,#20132c99 100%)}.hero:before{content:"";position:absolute;inset:0;z-index:-2;opacity:.14;background-image:linear-gradient(#a88aff22 1px,transparent 1px),linear-gradient(90deg,#a88aff22 1px,transparent 1px);background-size:48px 48px;mask-image:linear-gradient(90deg,black,transparent 90%)}.hero-glow{position:absolute;z-index:-1;border-radius:50%;filter:blur(2px);pointer-events:none}.glow-one{width:430px;height:430px;right:8%;top:8%;background:radial-gradient(circle,#a14bff26,transparent 68%)}.glow-two{width:300px;height:300px;right:28%;bottom:-25%;background:radial-gradient(circle,#ff5dbb18,transparent 70%)}.hero-copy{position:relative;z-index:2;max-width:610px}.eyebrow{display:inline-flex;align-items:center;gap:9px;font-size:9px;font-weight:800;letter-spacing:2.5px;color:#c5aaff}.eyebrow i{width:7px;height:7px;background:#ff78c9;border-radius:50%;box-shadow:0 0 13px #ff78c9}.hero h1,.section-heading h2,.closing h2{font:900 clamp(44px,6vw,78px)/.98 Outfit,sans-serif;letter-spacing:-2px;margin:25px 0 20px}.hero h1 em,.section-heading h2 em,.closing h2 em{font-style:normal;color:var(--pink);text-shadow:0 0 34px #ff76c833}.hero-copy>p,.section-heading>p,.closing>p{max-width:460px;color:#b6aec7;font-size:14px;line-height:1.8}.hero-button,.closing-button{display:inline-flex;align-items:center;gap:30px;margin-top:22px;padding:14px 19px;border-radius:8px;background:linear-gradient(110deg,#9d6cff,#df5fb9);color:#fff;text-decoration:none;font-size:11px;font-weight:800;box-shadow:0 10px 30px #a35fff33}.hero-button span{font-size:17px}.hero-art{position:absolute;width:410px;height:410px;right:10%;top:50%;transform:translateY(-50%)}.disc{position:absolute;border-radius:50%;width:290px;height:290px;top:54px;left:50px;background:repeating-radial-gradient(circle at center,#29213b 0 2px,#171322 3px 5px,#302441 6px 7px);box-shadow:0 25px 65px #0008,0 0 55px #b36aff26;border:1px solid #695184}.disc:after{content:"";position:absolute;inset:23px;border-radius:50%;border:1px solid #ffffff13}.disc-back{transform:rotate(-18deg) translate(-22px,10px);background:repeating-radial-gradient(circle at center,#412347 0 2px,#1b1428 3px 5px,#4a2b4a 6px 7px)}.disc-front{display:grid;place-items:center;transform:rotate(12deg)}.disc-center{width:83px;height:83px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#ff80c9,#9567ff);font:900 39px Outfit;color:#fff;box-shadow:0 0 25px #c16aff55}.music-note{position:absolute;font:80px Georgia;color:#ff8bcc;text-shadow:0 0 24px #ff76c8;z-index:3}.note-one{right:8px;top:25px;transform:rotate(14deg)}.note-two{left:5px;bottom:10px;color:#ad8aff;font-size:62px}.sound-wave{position:absolute;bottom:43px;right:12px;display:flex;align-items:center;gap:5px;height:46px}.sound-wave i{display:block;width:4px;border-radius:8px;background:linear-gradient(#ff8acb,#9871ff);height:var(--h,20px);box-shadow:0 0 8px #c17bff55}.sound-wave i:nth-child(3n){--h:38px}.sound-wave i:nth-child(3n + 1){--h:15px}.sound-wave i:nth-child(3n + 2){--h:27px}.art-caption{position:absolute;right:3px;top:155px;font:800 10px/1.5 Outfit;letter-spacing:3px;color:#d4b7ff;text-align:right}.hero-bottom{position:absolute;bottom:25px;left:clamp(22px,10vw,145px);right:clamp(22px,10vw,145px);display:flex;justify-content:space-between;color:#777087;font-size:8px;letter-spacing:2px}.hero-bottom b{color:var(--pink);font-size:13px;margin-left:7px}.rules-section{padding:100px clamp(22px,10vw,145px) 90px;background:#f7f4fb;color:#211a31}.section-heading{text-align:center;max-width:590px;margin:0 auto 48px}.section-heading .eyebrow{color:#8058bb}.section-heading h2{font-size:clamp(40px,5vw,58px);margin:15px 0;color:#211a31}.section-heading h2 em{color:#a55bd0;text-shadow:none}.section-heading>p{margin:0 auto;color:#746d80;font-size:13px}.rules-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.rule-card{position:relative;min-height:260px;padding:28px 30px;border:1px solid #e5ddeb;border-radius:15px;background:#fff;overflow:hidden;box-shadow:0 10px 30px #32194b08}.rule-card.featured{background:linear-gradient(135deg,#211832,#38234b);border-color:#4b3263;color:#fff}.rule-number{position:absolute;right:25px;top:20px;font:800 35px Outfit;color:#d9c8ec;opacity:.65}.featured .rule-number{color:#fff;opacity:.16}.rule-icon{font-size:25px;margin-bottom:16px}.rule-tag{display:block;font-size:8px;font-weight:800;letter-spacing:1.8px;color:#9b65c3}.featured .rule-tag{color:#d7a5ff}.rule-card h3{font:800 26px/1.12 Outfit;margin:10px 0;color:#251b35}.featured h3{color:white}.rule-card p{max-width:410px;color:#756d81;font-size:12px;line-height:1.8;margin:0}.rule-card p strong{color:#3a2a4c}.featured p{color:#c4b8d2}.featured p strong{color:#fff}.song-count{position:absolute;right:28px;bottom:24px;display:flex;align-items:center;gap:9px;color:#e6cfff}.song-count b{font:900 36px Outfit}.song-count span{font-size:7px;line-height:1.4;letter-spacing:1.2px}.priority-note{display:flex;align-items:center;gap:16px;margin-top:20px;padding:18px 21px;background:#eee7f5;border:1px solid #e3d8ee;border-radius:12px}.note-icon{font-size:23px}.priority-note p{margin:0;color:#655a71;font-size:11px;line-height:1.7}.priority-note strong{color:#352342}.closing{position:relative;text-align:center;padding:100px 22px 105px;background:radial-gradient(ellipse at 50% 100%,#783c8a33,transparent 60%),#171126;overflow:hidden}.closing:before,.closing:after{content:"✦";position:absolute;color:#a78aff33;font-size:90px}.closing:before{left:12%;top:20%}.closing:after{right:13%;bottom:15%;font-size:55px}.closing-spark{font-size:28px;color:#ff85cc;margin-bottom:15px}.closing .eyebrow{justify-content:center}.closing h2{font-size:clamp(39px,5vw,62px);margin:18px 0}.closing>p{margin:0 auto;font-size:13px}.closing-button{margin-top:27px;background:#2a203b;border:1px solid #5a426e;box-shadow:none}.closing-button span{color:#f29ad6}.footer{min-height:72px;padding:18px clamp(22px,7vw,100px);display:flex;align-items:center;justify-content:space-between;gap:15px;border-top:1px solid #ffffff13;color:#7d748e;font-size:8px;letter-spacing:1.5px}.footer a{color:#b9a9d1;text-decoration:none}.footer-brand{font:900 13px Outfit;letter-spacing:2px}.footer-brand span{font:500 8px 'DM Sans';color:#777087}
+  @media(max-width:850px){.hero{min-height:570px;padding-top:80px}.hero-art{right:-80px;opacity:.35;transform:translateY(-50%) scale(.85)}.hero-copy{max-width:560px}.hero-copy>p{max-width:400px}.hero h1{font-size:clamp(45px,8vw,68px)}}
+  @media(max-width:600px){.topbar{height:70px}.brand img{width:37px;height:37px}.top-link{font-size:10px;padding:9px 12px}.hero{min-height:620px;padding:75px 25px 90px;align-items:flex-start}.hero-art{width:300px;height:300px;top:auto;bottom:28px;right:-48px;transform:none;opacity:.42}.disc{width:220px;height:220px;top:35px;left:35px}.disc-center{width:65px;height:65px;font-size:30px}.note-one{font-size:60px}.note-two{font-size:48px}.art-caption{top:110px}.sound-wave{bottom:12px}.hero h1{font-size:clamp(43px,12vw,61px);letter-spacing:-1.5px;margin-top:20px}.hero-copy>p{font-size:12px;max-width:330px}.hero-bottom{left:25px;right:25px;font-size:7px}.rules-section{padding:72px 20px}.section-heading{margin-bottom:32px}.section-heading h2{font-size:43px}.section-heading>p{font-size:12px}.rules-grid{grid-template-columns:1fr;gap:12px}.rule-card{min-height:235px;padding:24px}.rule-card h3{font-size:25px}.rule-card p{font-size:11px;max-width:90%}.priority-note{align-items:flex-start;padding:15px;gap:10px}.priority-note p{font-size:10px}.closing{padding:78px 22px 85px}.closing h2{font-size:clamp(37px,10vw,52px);letter-spacing:-1px}.closing>p{font-size:12px}.footer{flex-wrap:wrap;justify-content:center;text-align:center;padding:20px}.footer>*{flex:1 1 40%}.footer-brand{font-size:12px}}
+  @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>

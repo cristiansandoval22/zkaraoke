@@ -1,0 +1,8 @@
+---
+const { label, value, detail, icon, tone = 'violet', id } = Astro.props;
+---
+<article class={`stat-card ${tone}`}>
+  <div class="stat-top"><span>{label}</span><span class="stat-icon">{icon}</span></div>
+  <strong class="stat-value" id={id}>{value}</strong>
+  <small>{detail}</small>
+</article>
