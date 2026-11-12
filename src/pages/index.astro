@@ -1,124 +1,139 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
-import PageHeading from '../components/PageHeading.astro';
-import { getSupabaseServerClient } from '../lib/supabase-server.js';
+import BaseLayout from "../layouts/BaseLayout.astro";
+import PageHeading from "../components/PageHeading.astro";
+import { getSupabaseServerClient } from "../lib/supabase-server.js";
 
 export const prerender = false;
 
 // Solo se muestra el estado "activo" de la configuración: la base no registra ocupación.
 const supabase = getSupabaseServerClient();
 const { data: activeLocations, error: locationsError } = await supabase
-  .from('tables')
-  .select('id,name,capacity')
-  .eq('active', true)
-  .order('name', { ascending: true });
+  .from("tables")
+  .select("id,name,capacity")
+  .eq("active", true)
+  .order("name", { ascending: true });
 
 if (!locationsError) {
-  Astro.cache.set({ maxAge: 86_400, swr: 86_400, tags: ['tables'] });
+  Astro.cache.set({ maxAge: 86_400, swr: 86_400, tags: ["tables"] });
 }
 
 // Ordena "Mesa 2" antes de "Mesa 10" (orden numérico natural).
-const locationCollator = new Intl.Collator('es', { numeric: true, sensitivity: 'base' });
+const locationCollator = new Intl.Collator("es", {
+  numeric: true,
+  sensitivity: "base",
+});
 const locations = [...(activeLocations ?? [])].sort((first, second) =>
-  locationCollator.compare(first.name, second.name)
+  locationCollator.compare(first.name, second.name),
 );
-const tables = locations.filter((location: any) => !/^barra\b/i.test(location.name));
-const barSpaces = locations.filter((location: any) => /^barra\b/i.test(location.name));
+const tables = locations.filter(
+  (location: any) => !/^barra\b/i.test(location.name),
+);
+const barSpaces = locations.filter((location: any) =>
+  /^barra\b/i.test(location.name),
+);
 ---
 
 <BaseLayout title="Selecciona tu mesa | Karaoke & Bar">
   <div data-location-selection>
-  <!-- Presentación y acceso a las reglas del local -->
-  <section class="welcome-banner">
-    <div>
-      <p class="eyebrow">BIENVENIDO/A</p>
+    <!-- Presentación y acceso a las reglas del local -->
+    <section class="welcome-banner">
+      <div>
+        <p class="eyebrow">BIENVENIDO/A</p>
 
-      <h1>
-        Tu noche<br />
-        <span>empieza aquí.</span>
-      </h1>
+        <h1>
+          Tu noche
+          <br />
+          <span>empieza aquí.</span>
+        </h1>
 
-      <p>Elige dónde disfrutarás la experiencia.</p>
-      <a href="/reglas">Reglas del lugar</a>
-    </div>
+        <p>Elige dónde disfrutarás la experiencia.</p>
+        <a href="/reglas">Reglas del lugar</a>
+      </div>
 
-    <div class="welcome-graphic" aria-hidden="true">♫</div>
-  </section>
+      <div class="welcome-graphic" aria-hidden="true">
+        ♫
+      </div>
+    </section>
 
-  <!-- Encabezado del paso de selección -->
-  <PageHeading
-    eyebrow="PASO 01"
-    title="¿Dónde estás?"
-    description="Selecciona tu mesa o un espacio en la barra."
-  />
+    <!-- Encabezado del paso de selección -->
+    <PageHeading
+      eyebrow="PASO 01"
+      title="¿Dónde estás?"
+      description="Selecciona tu mesa o un espacio en la barra."
+    />
     <!-- Selección de espacio en la barra -->
-  <section class="selection-section" aria-labelledby="bar-heading">
-    <div class="section-title">
-      <h2 id="bar-heading">Barra</h2>
-      <span>{barSpaces.length} espacios</span>
-    </div>
-
-    {locationsError ? null : barSpaces.length ? (
-      <div class="location-grid bar-grid">
-        {barSpaces.map((space: any) => (
-          <button
-            class="location-card"
-            type="button"
-            data-location={space.name}
-            aria-label={`${space.name}, capacidad ${space.capacity}`}
-          >
-            <span class="table-icon" aria-hidden="true">▤</span>
-            <strong>{space.name}</strong>
-          </button>
-        ))}
+    <section class="selection-section" aria-labelledby="bar-heading">
+      <div class="section-title">
+        <h2 id="bar-heading">Barra</h2>
+        <span>{barSpaces.length} espacios</span>
       </div>
-    ) : (
-      <p>No hay espacios de barra activos configurados.</p>
-    )}
-  </section>
 
+      {locationsError ? null : barSpaces.length ? (
+        <div class="location-grid bar-grid">
+          {barSpaces.map((space: any) => (
+            <button
+              class="location-card"
+              type="button"
+              data-location={space.name}
+              aria-label={`${space.name}, capacidad ${space.capacity}`}
+            >
+              <span class="table-icon" aria-hidden="true">
+                ▤
+              </span>
+              <strong>{space.name}</strong>
+            </button>
+          ))}
+        </div>
+      ) : (
+        <p>No hay espacios de barra activos configurados.</p>
+      )}
+    </section>
 
-  <!-- Selección de mesa -->
-  <section class="selection-section" aria-labelledby="tables-heading">
-    <div class="section-title">
-      <h2 id="tables-heading">Mesas</h2>
-      <span>{tables.length} espacios</span>
-    </div>
-
-    {locationsError ? (
-      <p role="alert">No se pudieron cargar las mesas. Intenta recargar la página.</p>
-    ) : tables.length ? (
-      <div class="location-grid">
-        {tables.map((table: any) => (
-          <button
-            class="location-card"
-            type="button"
-            data-location={table.name}
-            aria-label={`${table.name}, capacidad ${table.capacity}`}
-          >
-            <span class="table-icon" aria-hidden="true">▦</span>
-            <strong>{table.name}</strong>
-          </button>
-        ))}
+    <!-- Selección de mesa -->
+    <section class="selection-section" aria-labelledby="tables-heading">
+      <div class="section-title">
+        <h2 id="tables-heading">Mesas</h2>
+        <span>{tables.length} espacios</span>
       </div>
-    ) : (
-      <p>No hay mesas activas configuradas.</p>
-    )}
-  </section>
 
-  <!-- Se habilita cuando el cliente selecciona un espacio -->
-  <button
-    class="btn btn-primary btn-full continue-btn"
-    id="continue-location"
-    type="button"
-    disabled
-  >
-    Continuar <span aria-hidden="true">→</span>
-  </button>
+      {locationsError ? (
+        <p role="alert">
+          No se pudieron cargar las mesas. Intenta recargar la página.
+        </p>
+      ) : tables.length ? (
+        <div class="location-grid">
+          {tables.map((table: any) => (
+            <button
+              class="location-card"
+              type="button"
+              data-location={table.name}
+              aria-label={`${table.name}, capacidad ${table.capacity}`}
+            >
+              <span class="table-icon" aria-hidden="true">
+                ▦
+              </span>
+              <strong>{table.name}</strong>
+            </button>
+          ))}
+        </div>
+      ) : (
+        <p>No hay mesas activas configuradas.</p>
+      )}
+    </section>
+
+    <!-- Se habilita cuando el cliente selecciona un espacio -->
+    <button
+      class="btn btn-primary btn-full continue-btn"
+      id="continue-location"
+      type="button"
+      disabled
+    >
+      Continuar <span aria-hidden="true">→</span>
+    </button>
   </div>
 
   <!-- Gestiona la selección y la navegación -->
   <script>
-    import '../scripts/app.js';
+    import "../scripts/app.js";
   </script>
 </BaseLayout>

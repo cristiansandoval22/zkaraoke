@@ -1,17 +1,36 @@
 <div class="modal-backdrop" id="modal-backdrop" hidden>
-  <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <section
+    class="modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="modal-title"
+  >
     <div class="modal-head">
-      <div>
-        <p class="eyebrow" id="modal-eyebrow">GESTIÓN</p>
-        <h2 id="modal-title">Nuevo registro</h2>
+      <div class="modal-title-group">
+        <div class="modal-song-icon" aria-hidden="true">
+          ♫
+        </div>
+        <div>
+          <p class="eyebrow" id="modal-eyebrow">
+            GESTIÓN
+          </p>
+          <h2 id="modal-title">Nuevo registro</h2>
+          <p class="modal-subtitle" id="modal-subtitle"></p>
+        </div>
       </div>
-      <button class="icon-btn" id="modal-close" aria-label="Cerrar">×</button>
+      <button class="icon-btn" id="modal-close" aria-label="Cerrar">
+        ×
+      </button>
     </div>
     <form id="record-form">
       <div id="modal-fields" class="form-grid"></div>
       <div class="modal-actions">
-        <button type="button" class="btn btn-ghost" id="modal-cancel">Cancelar</button>
-        <button class="btn btn-primary" id="modal-save" type="submit">Guardar cambios</button>
+        <button type="button" class="btn btn-ghost" id="modal-cancel">
+          Cancelar
+        </button>
+        <button class="btn btn-primary" id="modal-save" type="submit">
+          Guardar cambios
+        </button>
       </div>
     </form>
   </section>

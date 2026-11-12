@@ -1,22 +1,92 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
-import PageHeading from '../components/PageHeading.astro';
-import LocationPill from '../components/LocationPill.astro';
+import BaseLayout from "../layouts/BaseLayout.astro";
+import PageHeading from "../components/PageHeading.astro";
+import LocationPill from "../components/LocationPill.astro";
+import PopularArtists from "../components/client/PopularArtists.astro";
 ---
+
 <BaseLayout title="Pedir música | Karaoke & Bar">
-  <div class="top-row"><a class="back-link" href="/menu">← Menú</a><span class="step-label">MÚSICA · 01</span></div>
-  <PageHeading eyebrow="CATÁLOGO MUSICAL" title="Elige tu canción." description="¡Tú tienes el micrófono! Puedes pedir hasta 2 canciones." />
+  <!-- Navegación Superior -->
+  <nav class="top-row" aria-label="Navegación de sección">
+    <a class="back-link" href="/menu">
+      ← Menú
+    </a>
+    <span class="step-label">MÚSICA · 01</span>
+  </nav>
+
+  <!-- Encabezado y Ubicación -->
+  <PageHeading
+    eyebrow="CATÁLOGO MUSICAL"
+    title="Elige tu canción."
+    description="¡Tú tienes el micrófono! Puedes pedir hasta 2 canciones."
+  />
   <LocationPill />
-  <div class="music-cart-strip"><div><span class="cart-mini-icon">♫</span><span><strong>Tu selección</strong><small><b id="song-count">0/2</b> canciones</small></span></div><a href="/resumen-musica" id="song-summary-link" class="btn btn-primary btn-small">Ver resumen →</a></div>
-  <div class="filter-panel">
-    <label class="search-field"><span>⌕</span><input id="song-search" type="search" placeholder="Buscar canción o artista..." /></label>
-    <div class="filter-row">
-      <select id="genre-filter" aria-label="Filtrar por género"><option value="">Todos los géneros</option></select>
-      <select id="language-filter" aria-label="Filtrar por idioma"><option value="">Todos los idiomas</option></select>
+
+  <!-- Barra de Selección / Carrito Musical -->
+  <aside class="music-cart-strip" aria-live="polite">
+    <div class="cart-info">
+      <span class="cart-mini-icon" aria-hidden="true">
+        ♫
+      </span>
+      <span>
+        <strong>Tu selección</strong>
+        <small>
+          <b id="song-count">0/2</b> canciones
+        </small>
+      </span>
     </div>
-  </div>
-  <div class="section-title"><h2>Catálogo</h2><span>Recomendadas para ti</span></div>
-  <div id="song-list" class="song-list"></div>
-  <button type="button" id="song-load-more" class="btn btn-outline btn-block" hidden>Mostrar más canciones</button>
-  <script>import '../scripts/app.js';</script>
+
+    <a
+      href="/resumen-musica"
+      id="song-summary-link"
+      class="btn btn-primary btn-small"
+    >
+      Ver resumen →
+    </a>
+  </aside>
+
+  <!-- <PopularArtists /> -->
+
+  <!-- Panel de Búsqueda y Filtros -->
+  <section class="filter-panel" aria-label="Filtros de canciones">
+    <label class="search-field" for="song-search">
+      <span aria-hidden="true">⌕</span>
+      <input
+        id="song-search"
+        type="search"
+        placeholder="Buscar canción o artista..."
+        autocomplete="off"
+      />
+    </label>
+
+    <div class="filter-row">
+      <select id="genre-filter" aria-label="Filtrar por género">
+        <option value="">Todos los géneros</option>
+      </select>
+
+      <select id="language-filter" aria-label="Filtrar por idioma">
+        <option value="">Todos los idiomas</option>
+      </select>
+    </div>
+  </section>
+
+  <!-- Listado de Canciones -->
+  <section aria-labelledby="catalog-heading">
+    <header class="section-title">
+      <h2 id="catalog-heading">Catálogo</h2>
+      <span>Recomendadas para ti</span>
+    </header>
+
+    <div id="song-list" class="song-list"></div>
+
+    <nav class="song-pagination" id="song-pagination" aria-label="Paginación de canciones" hidden>
+      <button type="button" id="song-page-prev" class="btn btn-outline" disabled>← Anterior</button>
+      <span id="song-page-info" aria-live="polite">Página 1</span>
+      <button type="button" id="song-page-next" class="btn btn-outline" disabled>Siguiente →</button>
+    </nav>
+  </section>
+
+  <script>
+    import "../scripts/app.js";
+  </script>
 </BaseLayout>

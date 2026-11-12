@@ -1,16 +1,37 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
-import PageHeading from '../components/PageHeading.astro';
-import LocationPill from '../components/LocationPill.astro';
-import ModuleCard from '../components/ModuleCard.astro';
+import BaseLayout from "../layouts/BaseLayout.astro";
+import PageHeading from "../components/PageHeading.astro";
+import LocationPill from "../components/LocationPill.astro";
+import ModuleCard from "../components/ModuleCard.astro";
 ---
+
 <BaseLayout title="Menú principal | Karaoke & Bar">
-  <PageHeading eyebrow="MENÚ PRINCIPAL" title="¿Qué te provoca?" description="Elige un módulo. Puedes hacer ambos pedidos por separado." />
+  <PageHeading
+    eyebrow="MENÚ PRINCIPAL"
+    title="¿Qué te provoca?"
+    description="Elige un módulo. Puedes hacer ambos pedidos por separado."
+  />
   <LocationPill />
   <div class="module-list">
-    <ModuleCard href="/canciones" icon="🎤" title="Pedir música" description="Busca tus canciones favoritas y envíalas al DJ." tone="purple" />
-    <ModuleCard href="/carta" icon="🍻" title="Comida y bebidas" description="Explora la carta y pide directo a caja o barra." tone="orange" />
+    <ModuleCard
+      href="/canciones"
+      icon="🎤"
+      title="Pedir música"
+      description="Busca tus canciones favoritas y envíalas al DJ."
+      tone="purple"
+    />
+    <ModuleCard
+      href="/carta"
+      icon="🍻"
+      title="Comida y bebidas"
+      description="Explora la carta y pide directo a caja o barra."
+      tone="orange"
+    />
   </div>
-  <a class="back-link" href="/">← Cambiar mesa o barra</a>
-  <script>import '../scripts/app.js';</script>
+  <a class="back-link" href="/">
+    ← Cambiar mesa o barra
+  </a>
+  <script>
+    import "../scripts/app.js";
+  </script>
 </BaseLayout>

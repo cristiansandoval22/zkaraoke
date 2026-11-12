@@ -1,0 +1,25 @@
+<section class="view-section" id="view-artists">
+  <div class="page-title-row">
+    <div><p class="eyebrow">BIBLIOTECA MUSICAL</p><h1>Artistas</h1><p class="subheading">Administra los nombres y las imágenes que aparecen en el catálogo.</p></div>
+    <button class="btn btn-primary" type="button" data-action="new-artist">＋ Nuevo artista</button>
+  </div>
+  <div class="artist-admin__toolbar">
+    <label class="search-box">⌕ <input id="artist-search-admin" type="search" placeholder="Buscar artista..." /></label>
+    <button class="btn btn-ghost" type="button" id="artist-refresh">↻ Actualizar</button>
+  </div>
+  <div class="artist-admin__grid" id="artists-grid" aria-live="polite"><p class="table-message">Carga inicial…</p></div>
+  <div class="pagination"><span id="artists-pagination-info">—</span><div><button class="btn btn-ghost btn-small" id="artists-prev" type="button">← Anterior</button><button class="btn btn-ghost btn-small" id="artists-next" type="button">Siguiente →</button></div></div>
+</section>
+
+<style>
+  .artist-admin__toolbar { display: flex; flex-wrap: wrap; gap: 10px; margin: 18px 0; }
+  .artist-admin__toolbar .search-box { flex: 1 1 220px; }
+  .artist-admin__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .artist-admin__card { min-width: 0; padding: 14px; border: 1px solid var(--line); border-radius: 15px; background: var(--panel); }
+  .artist-admin__portrait { display: grid; width: 64px; aspect-ratio: 1; margin-bottom: 10px; place-items: center; overflow: hidden; border-radius: 50%; background: var(--panel2); color: var(--purple); font-size: 22px; }
+  .artist-admin__portrait img { width: 100%; height: 100%; object-fit: cover; }
+  .artist-admin__name { overflow: hidden; margin: 0 0 10px; font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
+  .artist-admin__actions { display: flex; gap: 8px; }
+  @media (min-width: 700px) { .artist-admin__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; } }
+  @media (min-width: 1100px) { .artist-admin__grid { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+</style>

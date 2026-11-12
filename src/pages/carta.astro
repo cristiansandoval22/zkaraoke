@@ -1,16 +1,39 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
-import PageHeading from '../components/PageHeading.astro';
-import LocationPill from '../components/LocationPill.astro';
-import BottomCartBar from '../components/BottomCartBar.astro';
+import BaseLayout from "../layouts/BaseLayout.astro";
+import PageHeading from "../components/PageHeading.astro";
+import LocationPill from "../components/LocationPill.astro";
+import BottomCartBar from "../components/BottomCartBar.astro";
 ---
+
 <BaseLayout title="Carta | Karaoke & Bar">
-  <div class="top-row"><a class="back-link" href="/menu">← Menú</a><span class="step-label">CARTA · 01</span></div>
-  <PageHeading eyebrow="CARTA & BAR" title="Algo rico para compartir." description="Agrega tus favoritos. Puedes ajustar las cantidades aquí mismo." />
+  <div class="top-row">
+    <a class="back-link" href="/menu">
+      ← Menú
+    </a>
+    <span class="step-label">CARTA · 01</span>
+  </div>
+  <PageHeading
+    eyebrow="CARTA & BAR"
+    title="Algo rico para compartir."
+    description="Agrega tus favoritos. Puedes ajustar las cantidades aquí mismo."
+  />
   <LocationPill />
-  <label class="search-field product-search"><span>⌕</span><input id="product-search" type="search" placeholder="Buscar en la carta..." /></label>
-  <div class="category-tabs" id="menu-category-tabs" aria-label="Filtrar por categoría"></div>
+  <label class="search-field product-search">
+    <span>⌕</span>
+    <input
+      id="product-search"
+      type="search"
+      placeholder="Buscar en la carta..."
+    />
+  </label>
+  <div
+    class="category-tabs"
+    id="menu-category-tabs"
+    aria-label="Filtrar por categoría"
+  ></div>
   <div id="product-list" class="product-grid"></div>
   <BottomCartBar />
-  <script>import '../scripts/app.js';</script>
+  <script>
+    import "../scripts/app.js";
+  </script>
 </BaseLayout>

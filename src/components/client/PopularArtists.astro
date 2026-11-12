@@ -1,0 +1,189 @@
+<section class="popular-artists" aria-labelledby="popular-artists-title">
+  <header class="popular-artists__header">
+    <div>
+      <p class="popular-artists__eyebrow">DESCUBRE</p>
+      <h2 id="popular-artists-title" class="popular-artists__title">
+        Artistas populares
+      </h2>
+    </div>
+    <button
+      class="popular-artists__toggle"
+      id="popular-artists-toggle"
+      type="button"
+      aria-expanded="false"
+      aria-controls="popular-artists-list"
+      hidden
+    >
+      Mostrar todo
+    </button>
+  </header>
+  <div class="popular-artists__viewport">
+    <div
+      class="popular-artists__list"
+      id="popular-artists-list"
+      aria-live="polite"
+    >
+      <p class="popular-artists__message">Cargando artistas…</p>
+    </div>
+  </div>
+  <script>
+    import "../../scripts/popular-artists.js";
+  </script>
+</section>
+
+<style>
+  .popular-artists {
+    margin: 24px 0 27px;
+    padding: 18px 0 4px;
+    border-top: 1px solid #2a2938;
+  }
+  .popular-artists__header {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .popular-artists__eyebrow {
+    margin: 0 0 4px;
+    color: #a998e8;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+  }
+  .popular-artists__title {
+    margin: 0;
+    color: #f6f4fb;
+    font:
+      700 19px/1.25 Manrope,
+      sans-serif;
+  }
+  .popular-artists__toggle {
+    flex: 0 0 auto;
+    border: 0;
+    background: transparent;
+    color: #b7a5ff;
+    padding: 6px 0 6px 8px;
+    font-size: 10px;
+    font-weight: 700;
+  }
+  .popular-artists__toggle:hover {
+    color: #e0d7ff;
+  }
+  .popular-artists__list {
+    display: flex;
+    gap: 13px;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    padding: 2px 2px 12px;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: thin;
+    scrollbar-color: #48415e transparent;
+  }
+  .popular-artists__card {
+    display: flex;
+    flex: 0 0 112px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    padding: 0;
+    text-align: left;
+    scroll-snap-align: start;
+  }
+  .popular-artists__portrait {
+    display: grid;
+    width: 104px;
+    aspect-ratio: 1;
+    flex: 0 0 auto;
+    place-items: center;
+    overflow: hidden;
+    border: 1px solid #363242;
+    border-radius: 50%;
+    background: linear-gradient(145deg, #302747, #191923 72%);
+    color: #c8b9ff;
+    font-size: 32px;
+    transition:
+      border-color 160ms ease,
+      transform 160ms ease;
+  }
+  .popular-artists__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .popular-artists__name {
+    width: 100%;
+    overflow: hidden;
+    color: #f4f2f8;
+    font-size: 11px;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .popular-artists__kind {
+    margin-top: -6px;
+    color: #9693a6;
+    font-size: 10px;
+  }
+  .popular-artists__card:hover .popular-artists__portrait,
+  .popular-artists__card:focus-visible .popular-artists__portrait {
+    transform: translateY(-2px);
+    border-color: #9275ed;
+  }
+  .popular-artists__card:focus-visible {
+    outline: 2px solid #a58aff;
+    outline-offset: 4px;
+    border-radius: 10px;
+  }
+  .popular-artists__message {
+    margin: 0;
+    color: #aaa7b8;
+    font-size: 11px;
+  }
+  .popular-artists--expanded .popular-artists__list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow: visible;
+    gap: 20px 12px;
+  }
+  .popular-artists--expanded .popular-artists__card {
+    flex-basis: auto;
+  }
+  @media (min-width: 600px) {
+    .popular-artists__title {
+      font-size: 21px;
+    }
+    .popular-artists__list {
+      gap: 18px;
+    }
+    .popular-artists__card {
+      flex-basis: 148px;
+      gap: 9px;
+    }
+    .popular-artists__portrait {
+      width: 140px;
+      font-size: 38px;
+    }
+    .popular-artists__name {
+      font-size: 12px;
+    }
+    .popular-artists--expanded .popular-artists__list {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 24px 16px;
+    }
+  }
+  @media (min-width: 1000px) {
+    .popular-artists__card {
+      flex-basis: 176px;
+    }
+    .popular-artists__portrait {
+      width: 166px;
+    }
+    .popular-artists--expanded .popular-artists__list {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+  }
+</style>

@@ -1,20 +1,26 @@
 ---
-import '../styles/global.css';
-import Header from '../components/Header.astro';
-const { title = 'Karaoke & Bar' } = Astro.props;
+import "../styles/global.css";
+import Header from "../components/Header.astro";
+const { title = "Karaoke & Bar" } = Astro.props;
 ---
+
 <!doctype html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#10101a" />
-    <meta name="description" content="Pide canciones, comida y bebidas en Karaoke & Bar." />
+    <meta
+      name="description"
+      content="Pide canciones, comida y bebidas en Karaoke & Bar."
+    />
 
     <title>{title}</title>
   </head>
   <body>
     <Header />
-    <main class="page-shell"><slot /></main>
+    <main class="page-shell">
+      <slot />
+    </main>
   </body>
 </html>

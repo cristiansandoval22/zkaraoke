@@ -1,12 +1,18 @@
 ---
 const { song } = Astro.props;
 ---
+
 <article class="song-card">
   <div class="song-art">♫</div>
   <div class="song-info">
     <strong>{song.title}</strong>
     <span>{song.artist}</span>
-    <div class="tag-row"><span class="tag">{song.genre}</span><span class="tag tag-muted">{song.language}</span></div>
+    <div class="tag-row">
+      <span class="tag">{song.genre}</span>
+      <span class="tag tag-muted">{song.language}</span>
+    </div>
   </div>
-  <button class="btn btn-small btn-outline" data-add-song={song.id}>Pedir</button>
+  <button class="btn btn-small btn-outline" data-add-song={song.id}>
+    Pedir
+  </button>
 </article>

@@ -1,18 +1,20 @@
 ---
-const { 
-  label = 'Ver resumen', 
-  href = '/resumen-carta', 
-  countId = 'food-count', 
-  totalId = 'food-total' } = Astro.props;
+const {
+  label = "Ver resumen",
+  href = "/resumen-carta",
+  countId = "food-count",
+  totalId = "food-total",
+} = Astro.props;
 ---
+
 <div class="bottom-cart-bar" id="bottom-cart-bar">
   <div>
     <strong id={countId}>0 productos</strong>
     <small id={totalId}>S/ 0.00</small>
   </div>
-  
+
   <a class="btn btn-primary" href={href}>
-    {label} 
+    {label}
     <span>→</span>
   </a>
 </div>

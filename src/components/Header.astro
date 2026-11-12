@@ -1,10 +1,18 @@
 ---
 const { compact = false } = Astro.props;
 ---
+
 <header class="site-header">
   <a class="brand" href="/" aria-label="Karaoke & Bar, inicio">
     <span class="brand-mark">♫</span>
-    <span><strong>Z</strong><small>KARAOKE</small></span>
+    <span>
+      <strong>Z</strong>
+      <small>KARAOKE</small>
+    </span>
   </a>
-  {!compact && <span class="header-note"><span class="live-dot"></span> Tu noche, tu música</span>}
+  {!compact && (
+    <span class="header-note">
+      <span class="live-dot"></span> Tu noche, tu música
+    </span>
+  )}
 </header>
