@@ -6,12 +6,20 @@ import { getSupabaseServerClient } from "../lib/supabase-server.js";
 export const prerender = false;
 
 // Solo se muestra el estado "activo" de la configuración: la base no registra ocupación.
-const supabase = getSupabaseServerClient();
-const { data: activeLocations, error: locationsError } = await supabase
-  .from("tables")
-  .select("id,name,capacity")
-  .eq("active", true)
-  .order("name", { ascending: true });
+let activeLocations = [];
+let locationsError = false;
+try {
+  const supabase = getSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("tables")
+    .select("id,name,capacity")
+    .eq("active", true)
+    .order("name", { ascending: true });
+  activeLocations = data ?? [];
+  locationsError = Boolean(error);
+} catch {
+  locationsError = true;
+}
 
 if (!locationsError) {
   Astro.cache.set({ maxAge: 86_400, swr: 86_400, tags: ["tables"] });
