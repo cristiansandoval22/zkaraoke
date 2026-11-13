@@ -92,7 +92,7 @@ export async function GET(context) {
         supabase
           .from("songs")
           .select(
-            "id,title,artist:artists(name),genre:genres(name),language:languages(name)",
+          "id,title,artist_id,legacy_artist:artists!songs_artist_id_fkey(name),song_artists(position,artist:artists(id,name)),genre:genres(name),language:languages(name)",
           ),
         genreId,
         languageId,
@@ -108,7 +108,7 @@ export async function GET(context) {
         supabase
           .from("songs")
           .select(
-            "id,title,artist:artists(name),genre:genres(name),language:languages(name)",
+            "id,title,artist_id,legacy_artist:artists!songs_artist_id_fkey(name),song_artists(position,artist:artists(id,name)),genre:genres(name),language:languages(name)",
           )
           .ilike("title", pattern),
         genreId,
@@ -120,9 +120,9 @@ export async function GET(context) {
         supabase
           .from("songs")
           .select(
-            "id,title,artist:artists!inner(name),genre:genres(name),language:languages(name)",
+            "id,title,artist_id,legacy_artist:artists!songs_artist_id_fkey(name),song_artists!inner(position,artist:artists!inner(id,name)),genre:genres(name),language:languages(name)",
           )
-          .ilike("artists.name", pattern),
+          .ilike("song_artists.artist.name", pattern),
         genreId,
         languageId,
         cursorTitle,
@@ -135,10 +135,33 @@ export async function GET(context) {
       if (titleResult.error) throw titleResult.error;
       if (artistResult.error) throw artistResult.error;
 
+      const artistSongIds = [
+        ...new Set((artistResult.data ?? []).map((song) => song.id)),
+      ];
+      let fullArtistMatches = [];
+      if (artistSongIds.length) {
+        const completeArtistQuery = applyCatalogFilters(
+          supabase
+            .from("songs")
+            .select(
+              "id,title,artist_id,legacy_artist:artists!songs_artist_id_fkey(name),song_artists(position,artist:artists(id,name)),genre:genres(name),language:languages(name)",
+            )
+            .in("id", artistSongIds),
+          genreId,
+          languageId,
+          cursorTitle,
+          cursorId,
+        );
+        const { data: completeSongs, error: completeError } =
+          await completeArtistQuery;
+        if (completeError) throw completeError;
+        fullArtistMatches = completeSongs ?? [];
+      }
+
       const uniqueSongs = new Map();
       for (const song of [
         ...(titleResult.data ?? []),
-        ...(artistResult.data ?? []),
+        ...fullArtistMatches,
       ]) {
         uniqueSongs.set(song.id, song);
       }
@@ -148,6 +171,15 @@ export async function GET(context) {
           (left.id < right.id ? -1 : left.id > right.id ? 1 : 0),
       );
     }
+
+    songRows = songRows.map((song) => {
+      const links = (song.song_artists || [])
+        .filter((link) => link.artist?.name)
+        .sort((left, right) => left.position - right.position);
+      const artists = links.map((link) => link.artist);
+      if (!artists.length && song.legacy_artist?.name) artists.push(song.legacy_artist);
+      return { ...song, artists, artist: artists[0] || null };
+    });
 
     const hasMore = songRows.length > PAGE_SIZE;
     const songs = songRows.slice(0, PAGE_SIZE);
