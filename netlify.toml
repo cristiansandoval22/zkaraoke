@@ -4,3 +4,7 @@
 
 [build.environment]
   NODE_VERSION = "22.23.4"
+  # Supabase URLs and publishable keys are intentionally included in browser code.
+  # Include server aliases because Netlify also matches their identical values.
+  # Keep scanning enabled for all other credentials, including service-role keys.
+  SECRETS_SCAN_OMIT_KEYS = "PUBLIC_SUPABASE_URL,PUBLIC_SUPABASE_PUBLISHABLE_KEY,SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY"
