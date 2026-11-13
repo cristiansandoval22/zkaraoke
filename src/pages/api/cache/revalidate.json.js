@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { getSupabaseServerConfig } from "../../../lib/supabase-server.js";
 
 const allowedTags = new Set(["songs", "artists", "menu", "tables", "settings"]);
 
@@ -43,16 +44,17 @@ export async function POST(context) {
     );
   }
 
-  const supabaseUrl = import.meta.env.SUPABASE_URL;
-  const publishableKey = import.meta.env.SUPABASE_PUBLISHABLE_KEY;
-  if (!supabaseUrl || !publishableKey) {
+  let config;
+  try {
+    config = getSupabaseServerConfig();
+  } catch {
     return jsonResponse(
       { error: "La conexión del servidor no está configurada." },
       500,
     );
   }
 
-  const supabase = createClient(supabaseUrl, publishableKey, {
+  const supabase = createClient(config.url, config.publishableKey, {
     auth: { persistSession: false, autoRefreshToken: false },
     global: { headers: { Authorization: `Bearer ${accessToken}` } },
   });
