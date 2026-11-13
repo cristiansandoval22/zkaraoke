@@ -1,12 +1,11 @@
-import { defineConfig } from 'astro/config'
-
-import vercel from '@astrojs/vercel';
-import { cacheVercel } from '@astrojs/vercel/cache';
+import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify';
+import { cacheNetlify } from '@astrojs/netlify/cache';
 
 export default defineConfig({
   output: 'server',
-  adapter: vercel(),
+  adapter: netlify(),
   cache: {
-    provider: cacheVercel(),
+    provider: cacheNetlify(),
   },
 })
