@@ -165,7 +165,9 @@ function renderSongs() {
   list.innerHTML = visibleSongs.length
     ? visibleSongs
         .map((song) => {
-          const artist = song.artist?.name || "Artista no registrado";
+          const artist = (song.artists?.length
+            ? song.artists.map((item) => item.name).filter(Boolean).join(", ")
+            : song.artist?.name || song.artist || "Artista no registrado");
           const genre = song.genre?.name || "Sin género";
           const language = song.language?.name || "Sin idioma";
           const alreadySelected = selectedSongs.some(
@@ -381,8 +383,9 @@ function renderMusicSummary() {
   list.innerHTML = selectedSongs.length
     ? selectedSongs
         .map((song, index) => {
-          const artist =
-            song.artist?.name || song.artist || "Artista no registrado";
+          const artist = song.artists?.length
+            ? song.artists.map((item) => item.name).filter(Boolean).join(", ")
+            : song.artist?.name || song.artist || "Artista no registrado";
           const genre =
             song.genre?.name || song.genre || "Género no registrado";
           return `
@@ -417,7 +420,7 @@ if (sendMusic)
       return;
     }
     const note = $("#music-note")?.value.trim();
-    const message = `🎤 *PEDIDO DE MÚSICA — KARAOKE & BAR*\n📍 Ubicación: ${locationName() || "No indicada"}\n\n${selectedSongs.map((song, index) => `${index + 1}. ${song.title} — ${song.artist?.name || song.artist || "Artista no registrado"}`).join("\n")}${note ? `\n\n💌 Dedicatoria: ${note}` : ""}`;
+    const message = `🎤 *PEDIDO DE MÚSICA — KARAOKE & BAR*\n📍 Ubicación: ${locationName() || "No indicada"}\n\n${selectedSongs.map((song, index) => `${index + 1}. ${song.title} — ${song.artists?.length ? song.artists.map((artist) => artist.name).filter(Boolean).join(", ") : song.artist?.name || song.artist || "Artista no registrado"}`).join("\n")}${note ? `\n\n💌 Dedicatoria: ${note}` : ""}`;
     wa(message);
   });
 

@@ -1,12 +1,15 @@
 ---
 const { song } = Astro.props;
+const artistNames = song.artists?.length
+  ? song.artists.map((artist) => artist.name).filter(Boolean).join(", ")
+  : song.artist?.name || song.artist || "Artista no registrado";
 ---
 
 <article class="song-card">
   <div class="song-art">♫</div>
   <div class="song-info">
     <strong>{song.title}</strong>
-    <span>{song.artist}</span>
+    <span>{artistNames}</span>
     <div class="tag-row">
       <span class="tag">{song.genre}</span>
       <span class="tag tag-muted">{song.language}</span>

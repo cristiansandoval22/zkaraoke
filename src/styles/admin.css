@@ -1207,6 +1207,43 @@ tr:hover td {
   gap: 6px;
 }
 
+.multi-artist-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  min-height: 0;
+}
+
+.artist-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  max-width: 100%;
+  border: 1px solid #66528f;
+  border-radius: 999px;
+  background: #302745;
+  color: #e7ddff;
+  padding: 5px 7px 5px 11px;
+  font-size: 11px;
+}
+
+.artist-tag button {
+  width: 19px;
+  height: 19px;
+  border: 0;
+  border-radius: 50%;
+  background: #49395f;
+  color: #fff;
+  font-size: 15px;
+  line-height: 1;
+}
+
+.artist-tag button:hover,
+.artist-tag button:focus-visible {
+  outline: 2px solid #c6b2ff;
+  background: #7955aa;
+}
+
 .genre-chip {
   border: 1px solid #393747;
   border-radius: 999px;

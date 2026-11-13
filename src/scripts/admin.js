@@ -240,7 +240,7 @@ async function loadSongs() {
   let q = supabase
     .from("songs")
     .select(
-      "id,title,artist_id,genre_id,language_id,artists(name),genres(name),languages(name)",
+      "id,title,artist_id,genre_id,language_id,legacy_artist:artists!songs_artist_id_fkey(name),song_artists(position,artist:artists(name)),genres(name),languages(name)",
       { count: "exact" },
     );
   const term = $("#song-search-admin")?.value.trim();
@@ -253,8 +253,20 @@ async function loadSongs() {
       )
       .map((artist) => artist.id);
     const safeTerm = term.replace(/[,%()]/g, " ").trim();
-    const artistClause = matchingArtistIds.length
-      ? `,artist_id.in.(${matchingArtistIds.join(",")})`
+    let matchingSongIds = [];
+    if (matchingArtistIds.length) {
+      const { data: links, error: linksError } = await supabase
+        .from("song_artists")
+        .select("song_id")
+        .in("artist_id", matchingArtistIds);
+      if (linksError) {
+        tbody.innerHTML = `<tr><td colspan="5" class="table-message error-text">${esc(errorMessage(linksError))}</td></tr>`;
+        return;
+      }
+      matchingSongIds = [...new Set((links || []).map((link) => link.song_id))];
+    }
+    const artistClause = matchingSongIds.length
+      ? `,id.in.(${matchingSongIds.join(",")})`
       : "";
     q = q.or(`title.ilike.%${safeTerm}%${artistClause}`);
   }
@@ -274,7 +286,7 @@ async function loadSongs() {
         .map(
           (song) => `<tr>
     <td><div class="primary-cell"><span class="song-symbol">♫</span><strong>${esc(song.title)}</strong></div></td>
-    <td>${esc(song.artists?.name || "—")}</td><td><span class="soft-tag">${esc(song.genres?.name || "—")}</span></td><td>${esc(song.languages?.name || "—")}</td>
+    <td>${esc(song.song_artists?.sort((a, b) => a.position - b.position).map((item) => item.artist?.name).filter(Boolean).join(", ") || song.legacy_artist?.name || "—")}</td><td><span class="soft-tag">${esc(song.genres?.name || "—")}</span></td><td>${esc(song.languages?.name || "—")}</td>
     <td class="align-right"><button class="row-action" data-edit-song="${song.id}">Editar</button><button class="row-action danger" data-delete-song="${song.id}" data-delete-title="${esc(song.title)}">Eliminar</button></td>
   </tr>`,
         )
@@ -510,7 +522,7 @@ document.addEventListener("click", (event) => {
 });
 function openModal(title, fields, record = {}, onSave) {
   const isSongModal = fields.some(
-    (field) => field.type === "combobox" || field.type === "segmented",
+    (field) => ["combobox", "multi-combobox", "segmented"].includes(field.type),
   );
   const modal = $(".modal");
   modal.classList.toggle("modal--song", isSongModal);
@@ -556,6 +568,21 @@ function openModal(title, fields, record = {}, onSave) {
         <small class="song-field-help" data-combobox-help>${selectedLabel ? "Opción seleccionada." : field.help || "Busca y selecciona una opción existente."}</small>
       </div>`;
       }
+      if (field.type === "multi-combobox") {
+        const selectedIds = Array.isArray(value) ? value : [];
+        const selectedOptions = field.options.filter((option) => selectedIds.includes(option.value));
+        return `<div class="song-field song-field--full" data-multi-combobox="${esc(field.name)}">
+          <label class="song-field-label" for="search-${esc(field.name)}">${field.label}${field.required ? ' <span class="required-mark">*</span>' : ""}</label>
+          <div class="multi-artist-tags" data-selected-tags>${selectedOptions.map((option) => `<span class="artist-tag">${esc(option.label)}<button type="button" data-remove-artist="${esc(option.value)}" aria-label="Quitar ${esc(option.label)}">×</button></span>`).join("")}</div>
+          <div class="song-input-wrap song-input-wrap--search">
+            <span class="song-input-icon" aria-hidden="true">⌕</span>
+            <input id="search-${esc(field.name)}" type="search" placeholder="${esc(field.placeholder || "Buscar artista existente...")}" autocomplete="off" aria-autocomplete="list" aria-expanded="false" aria-controls="options-${esc(field.name)}" data-multi-artist-input />
+          </div>
+          <div class="song-combobox-menu" id="options-${esc(field.name)}" role="listbox" hidden data-multi-artist-options></div>
+          <input type="hidden" name="${esc(field.name)}" value='${esc(JSON.stringify(selectedIds))}' data-multi-artist-value />
+          <small class="song-field-help" data-multi-artist-help>${selectedIds.length ? `${selectedIds.length} artista${selectedIds.length === 1 ? "" : "s"} seleccionado${selectedIds.length === 1 ? "" : "s"}.` : field.help || "Busca y agrega uno o más artistas."}</small>
+        </div>`;
+      }
       if (field.type === "segmented")
         return `<fieldset class="song-field song-field--full song-language-field"><legend class="song-field-label">${field.label}${field.required ? ' <span class="required-mark">*</span>' : ""}</legend><div class="language-options">${field.options.map((option, index) => `<label class="language-option"><input type="radio" name="${field.name}" value="${esc(option.value)}" ${String(option.value) === String(value) || (!value && index === 0) ? "checked" : ""} ${field.required ? "required" : ""}/><span>${esc(option.label)}</span></label>`).join("")}</div></fieldset>`;
       if (field.type === "select")
@@ -579,7 +606,7 @@ function openModal(title, fields, record = {}, onSave) {
     const valueInput = $("[data-combobox-value]", container);
     const menu = $("[data-combobox-options]", container);
     const help = $("[data-combobox-help]", container);
-    const options = field.options.filter((option) => option.value !== "");
+    let options = field.options.filter((option) => option.value !== "");
     const normalize = (text) =>
       text
         .normalize("NFD")
@@ -654,6 +681,84 @@ function openModal(title, fields, record = {}, onSave) {
     syncQuickChips(valueInput.value);
   });
 
+  $$("[data-multi-combobox]", $("#modal-fields")).forEach((container) => {
+    const fieldName = container.dataset.multiCombobox;
+    const field = fields.find((item) => item.name === fieldName);
+    let options = field.options.filter((option) => option.value !== "");
+    const input = $("[data-multi-artist-input]", container);
+    const hidden = $("[data-multi-artist-value]", container);
+    const tags = $("[data-selected-tags]", container);
+    const menu = $("[data-multi-artist-options]", container);
+    const help = $("[data-multi-artist-help]", container);
+    let selected = Array.isArray(field.value) ? [...field.value] : [];
+    const normalize = (text) => text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("es");
+    const renderSelected = () => {
+      const selectedOptions = selected.map((id) => options.find((option) => option.value === id)).filter(Boolean);
+      tags.innerHTML = selectedOptions.map((option) => `<span class="artist-tag">${esc(option.label)}<button type="button" data-remove-artist="${esc(option.value)}" aria-label="Quitar ${esc(option.label)}">×</button></span>`).join("");
+      hidden.value = JSON.stringify(selectedOptions.map((option) => option.value));
+      help.textContent = `${selectedOptions.length} artista${selectedOptions.length === 1 ? "" : "s"} seleccionado${selectedOptions.length === 1 ? "" : "s"}. El orden de las etiquetas será el orden mostrado en la canción.`;
+    };
+    let searchTimer;
+    let searchVersion = 0;
+    const renderOptions = (matches) => {
+      menu.innerHTML = matches.length ? matches.slice(0, 12).map((option) => `<button type="button" class="combobox-option" role="option" data-option-value="${esc(option.value)}">${esc(option.label)}</button>`).join("") : '<p class="combobox-empty">No encontramos más artistas.</p>';
+      if (matches.length > 12) help.textContent = `Mostrando 12 de ${matches.length}. Escribe un poco más para afinar.`;
+    };
+    const showOptions = async () => {
+      const currentVersion = ++searchVersion;
+      const query = input.value.trim();
+      const normalizedQuery = normalize(query);
+      const localMatches = options.filter((option) => !selected.includes(option.value) && normalize(option.label).includes(normalizedQuery));
+      renderOptions(localMatches);
+      menu.hidden = false;
+      input.setAttribute("aria-expanded", "true");
+      if (query.length < 2) {
+        help.textContent = "Escribe al menos 2 letras para buscar entre todos los artistas.";
+        return;
+      }
+      const safeQuery = query.replace(/[\\%_]/g, "\\$&");
+      const { data, error } = await supabase.from("artists").select("id,name").ilike("name", `%${safeQuery}%`).order("name").limit(12);
+      if (currentVersion !== searchVersion || input.value.trim() !== query) return;
+      if (error) {
+        menu.innerHTML = '<p class="combobox-empty">No se pudo buscar artistas. Intenta nuevamente.</p>';
+        return;
+      }
+      const combined = new Map((data || []).map((artist) => [artist.id, { value: artist.id, label: artist.name }]));
+      for (const option of localMatches) {
+        if (combined.size >= 12) break;
+        if (!combined.has(option.value)) combined.set(option.value, option);
+      }
+      options = [...new Map([...options, ...combined.values()].map((option) => [option.value, option])).values()];
+      renderOptions([...combined.values()].filter((option) => !selected.includes(option.value)));
+    };
+    input.addEventListener("focus", showOptions);
+    input.addEventListener("input", () => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(showOptions, 250);
+    });
+    menu.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-option-value]");
+      if (!button || selected.includes(button.dataset.optionValue)) return;
+      if (selected.length >= 10) {
+        toast("Puedes asignar hasta 10 artistas por canción.", "error");
+        return;
+      }
+      selected.push(button.dataset.optionValue);
+      input.value = "";
+      renderSelected();
+      showOptions();
+      input.focus();
+    });
+    tags.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-remove-artist]");
+      if (!button) return;
+      selected = selected.filter((id) => id !== button.dataset.removeArtist);
+      renderSelected();
+      showOptions();
+    });
+    renderSelected();
+  });
+
   modalForm.onsubmit = async (event) => {
     event.preventDefault();
     const submit = $("#modal-save");
@@ -662,7 +767,10 @@ function openModal(title, fields, record = {}, onSave) {
     fields.forEach((f) => {
       if (f.type === "file") values[f.name] = fd.get(f.name);
       else if (f.type === "checkbox") values[f.name] = fd.has(f.name);
-      else values[f.name] = fd.get(f.name);
+      else if (f.type === "multi-combobox") {
+        try { values[f.name] = JSON.parse(fd.get(f.name) || "[]"); }
+        catch { values[f.name] = []; }
+      } else values[f.name] = fd.get(f.name);
     });
     const unselected = fields.find(
       (field) =>
@@ -674,6 +782,12 @@ function openModal(title, fields, record = {}, onSave) {
         "error",
       );
       $(`[data-combobox="${unselected.name}"] [data-combobox-input]`).focus();
+      return;
+    }
+    const missingArtists = fields.find((field) => field.required && field.type === "multi-combobox" && !values[field.name]?.length);
+    if (missingArtists) {
+      toast(`Agrega al menos un artista en "${missingArtists.label}".`, "error");
+      $(`[data-multi-combobox="${missingArtists.name}"] [data-multi-artist-input]`).focus();
       return;
     }
     submit.disabled = true;
@@ -755,13 +869,21 @@ async function artistModal(id = null) {
 }
 
 async function songModal(id = null) {
-  const { data: existing } = id
-    ? await supabase.from("songs").select("*").eq("id", id).single()
-    : { data: {} };
+  let existing = {};
+  if (id) {
+    const { data, error } = await supabase.from("songs").select("id,title,artist_id,genre_id,language_id,song_artists(position,artist_id,artist:artists(id,name))").eq("id", id).single();
+    if (error) return toast(errorMessage(error), "error");
+    existing = { ...data, artist_ids: data.song_artists?.sort((a, b) => a.position - b.position).map((item) => item.artist_id) || (data.artist_id ? [data.artist_id] : []) };
+  }
   const artistOptions = state.artists.map((a) => ({
     value: a.id,
     label: a.name,
   }));
+  for (const link of existing.song_artists || []) {
+    if (link.artist && !artistOptions.some((option) => option.value === link.artist.id)) {
+      artistOptions.push({ value: link.artist.id, label: link.artist.name });
+    }
+  }
   const genreOptions = state.genres.map((genre) => ({
     value: genre.id,
     label: genre.name,
@@ -789,12 +911,13 @@ async function songModal(id = null) {
       full: true,
     },
     {
-      name: "artist_id",
-      label: "Artista o banda",
-      type: "combobox",
+      name: "artist_ids",
+      label: "Artistas o bandas",
+      type: "multi-combobox",
       required: true,
-      placeholder: "Buscar artista existente...",
-      help: "Escribe para encontrar artistas del repertorio.",
+      placeholder: "Busca y agrega artistas...",
+      help: "Cada artista se guardará como una etiqueta independiente.",
+      value: existing.artist_ids || [],
       options: artistOptions,
     },
     {
@@ -819,17 +942,14 @@ async function songModal(id = null) {
     fields,
     existing || {},
     async (v) => {
-      const payload = {
-        title: v.title.trim(),
-        artist_id: v.artist_id || null,
-        genre_id: v.genre_id || null,
-        language_id: v.language_id || null,
-        updated_at: new Date().toISOString(),
-      };
-      const result = id
-        ? await supabase.from("songs").update(payload).eq("id", id)
-        : await supabase.from("songs").insert(payload);
-      if (result.error) throw result.error;
+      const { error } = await supabase.rpc("save_song_with_artists", {
+        p_song_id: id || null,
+        p_title: v.title.trim(),
+        p_artist_ids: v.artist_ids,
+        p_genre_id: v.genre_id || null,
+        p_language_id: v.language_id || null,
+      });
+      if (error) throw error;
       const cacheCleared = await revalidatePublicCache(["songs", "artists"]);
       await loadSongs();
       await loadOverview();

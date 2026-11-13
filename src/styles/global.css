@@ -973,6 +973,10 @@ button {
   transform: translate(-50%, 0);
 }
 
+.nl-badge{
+  display: none !important;
+}
+
 @media (min-width: 650px) {
   .page-shell {
     padding-top: 35px;
