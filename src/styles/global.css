@@ -857,6 +857,22 @@ button {
   gap: 12px;
 }
 
+body:has(.bottom-cart-bar--menu) .page-shell {
+  padding-bottom: 180px;
+}
+
+.bottom-cart-bar--menu > a {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  touch-action: manipulation;
+}
+
 .bottom-cart-bar > div strong,
 .bottom-cart-bar > div small {
   display: block;
@@ -975,6 +991,19 @@ button {
 
 .nl-badge{
   display: none !important;
+}
+
+@media (max-width: 649px) {
+  .bottom-cart-bar--menu {
+    bottom: max(64px, calc(env(safe-area-inset-bottom) + 56px));
+    left: 12px;
+    right: 12px;
+    z-index: 30;
+    padding: 10px 12px;
+    border: 1px solid #48415f;
+    border-radius: 16px;
+    box-shadow: 0 10px 32px #0009;
+  }
 }
 
 @media (min-width: 650px) {

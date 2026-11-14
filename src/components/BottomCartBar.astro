@@ -7,7 +7,7 @@ const {
 } = Astro.props;
 ---
 
-<div class="bottom-cart-bar" id="bottom-cart-bar">
+<aside class="bottom-cart-bar bottom-cart-bar--menu" id="bottom-cart-bar" aria-label="Resumen de tu pedido">
   <div>
     <strong id={countId}>0 productos</strong>
     <small id={totalId}>S/ 0.00</small>
@@ -17,4 +17,4 @@ const {
     {label}
     <span>→</span>
   </a>
-</div>
+</aside>
