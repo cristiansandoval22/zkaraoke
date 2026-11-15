@@ -1,0 +1,91 @@
+---
+const { genres = [], languages = [], categories = [] } = Astro.props;
+const quickGenreNames = ["Rock", "Salsa", "Pop", "Cumbia", "Balada"];
+const quickGenres = quickGenreNames.map((name) =>
+  genres.find((genre) => genre.name.toLocaleLowerCase("es") === name.toLocaleLowerCase("es")),
+).filter(Boolean);
+---
+
+<div class="modal-backdrop" id="modal-backdrop" hidden>
+  <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-head">
+      <div class="modal-title-group">
+        <div class="modal-song-icon" aria-hidden="true">♫</div>
+        <div><p class="eyebrow" id="modal-eyebrow">GESTIÓN</p><h2 id="modal-title">Nuevo registro</h2><p class="modal-subtitle" id="modal-subtitle"></p></div>
+      </div>
+      <button class="icon-btn" id="modal-close" type="button" aria-label="Cerrar">×</button>
+    </div>
+    <form id="record-form">
+      <fieldset class="form-grid" data-form-group="artist" disabled>
+        <label class="full">Nombre del artista o banda<input name="name" required /></label>
+        <label class="full">URL de imagen<input name="image_url" type="url" placeholder="https://..." /></label>
+      </fieldset>
+      <fieldset class="form-grid song-fields" data-form-group="song" disabled>
+        <label class="song-field song-field--full"><span class="song-field-label">Título de la canción <span class="required-mark">*</span></span><span class="song-input-wrap"><span class="song-input-icon" aria-hidden="true">♫</span><input name="title" type="text" placeholder="Ej. Lamento Boliviano" required /></span></label>
+        <div class="song-field song-field--full" data-multi-combobox="artist_ids">
+          <label class="song-field-label" for="song-artists-input">Artistas o bandas <span class="required-mark">*</span></label>
+          <div class="multi-artist-tags" data-selected-tags></div>
+          <div class="song-input-wrap song-input-wrap--search"><span class="song-input-icon" aria-hidden="true">⌕</span><input id="song-artists-input" type="search" placeholder="Busca y agrega artistas..." autocomplete="off" aria-autocomplete="list" aria-expanded="false" aria-controls="song-artists-options" data-multi-artist-input /></div>
+          <div class="song-combobox-menu" id="song-artists-options" role="listbox" hidden data-multi-artist-options></div>
+          <input type="hidden" name="artist_ids" value="[]" data-multi-artist-value />
+          <small class="song-field-help" data-multi-artist-help>Cada artista se guardará como una etiqueta independiente.</small>
+        </div>
+        <div class="song-field song-field--full" data-combobox="genre_id">
+          <label class="song-field-label" for="song-genre-input">Género musical <span class="required-mark">*</span></label>
+          <div class="genre-chips" aria-label="Géneros rápidos">{quickGenres.map((genre) => <button type="button" class="genre-chip" data-quick-value={genre.id}>{genre.name}</button>)}</div>
+          <div class="song-input-wrap song-input-wrap--search"><span class="song-input-icon" aria-hidden="true">⌕</span><input id="song-genre-input" type="search" placeholder="Buscar un género..." autocomplete="off" aria-autocomplete="list" aria-expanded="false" aria-controls="song-genre-options" data-combobox-input /><input type="hidden" name="genre_id" data-combobox-value /></div>
+          <div class="song-combobox-menu" id="song-genre-options" role="listbox" hidden data-combobox-options></div>
+          <small class="song-field-help" data-combobox-help>Busca y selecciona un género existente.</small>
+        </div>
+        <fieldset class="song-field song-field--full song-language-field"><legend class="song-field-label">Idioma <span class="required-mark">*</span></legend><div class="language-options">{languages.map((language, index) => <label class="language-option"><input type="radio" name="language_id" value={language.id} checked={index === 0} required /><span>{language.name}</span></label>)}</div></fieldset>
+      </fieldset>
+      <fieldset class="form-grid" data-form-group="product" disabled>
+        <label class="full">Nombre del producto<input name="name" required /></label>
+        <label class="full">Descripción<textarea name="description" rows="3"></textarea></label>
+        <label>Precio (S/)<input name="price" type="number" min="0" step="0.01" required /></label>
+        <label>Categoría<select name="category_id"><option value="">Seleccionar categoría</option>{categories.map((category) => <option value={category.id}>{category.name}</option>)}</select></label>
+        <label class="checkbox-label full"><input name="available" type="checkbox" checked /> Producto disponible</label>
+        <label class="full">Imagen del producto<input name="image_file" type="file" accept="image/*" /></label>
+      </fieldset>
+      <fieldset class="form-grid" data-form-group="category" disabled>
+        <label>Nombre<input name="name" required /></label><label>Emoji / icono<input name="icon" placeholder="🍹" /></label><label>Orden<input name="display_order" type="number" min="0" /></label>
+      </fieldset>
+      <fieldset class="form-grid" data-form-group="table" disabled>
+        <label class="full">Nombre del espacio<input name="name" placeholder="Mesa 10 o Barra 02" required /></label>
+        <label>Capacidad (personas)<input name="capacity" type="number" min="1" /></label>
+        <label class="checkbox-label"><input name="active" type="checkbox" /> Espacio activo</label>
+      </fieldset>
+      <div class="modal-actions"><button type="button" class="btn btn-ghost" id="modal-cancel">Cancelar</button><button class="btn btn-primary" id="modal-save" type="submit">Guardar cambios</button></div>
+    </form>
+  </section>
+</div>
+
+<style>
+  .song-fields { display: grid; gap: 19px 16px; }
+  .song-field { position: relative; display: flex; min-width: 0; flex-direction: column; gap: 7px; }
+  .song-field-label { color: #d2cfdd; font-size: 10px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+  .required-mark { color: #ff8293; }
+  .song-input-wrap { position: relative; display: flex; align-items: center; }
+  .song-input-wrap input { width: 100%; min-width: 0; height: 42px; border: 1px solid #383748; border-radius: 9px; outline: 0; background: #13131e; color: #f5f4fa; padding: 0 12px 0 38px; font-size: 12px; }
+  .song-input-wrap input::placeholder { color: #777587; }
+  .song-input-wrap input:focus { border-color: #9678ff; box-shadow: 0 0 0 3px #9678ff24; }
+  .song-input-icon { position: absolute; left: 13px; z-index: 1; color: #a999dc; font-size: 16px; pointer-events: none; }
+  .song-field-help { color: #8e8b9e; font-size: 9px; line-height: 1.4; }
+  .song-combobox-menu { position: absolute; top: calc(100% - 18px); right: 0; left: 0; z-index: 30; max-height: 220px; overflow-y: auto; padding: 5px; border: 1px solid #414052; border-radius: 10px; background: #1b1b28; box-shadow: 0 16px 35px #0008; }
+  .combobox-option { display: block; width: 100%; border: 0; border-radius: 6px; background: transparent; color: #efedf7; padding: 9px 10px; text-align: left; font-size: 11px; }
+  .combobox-option:hover, .combobox-option:focus-visible { outline: 0; background: #302745; color: #d6c8ff; }
+  .combobox-empty { padding: 10px; color: #aaa7b8; font-size: 10px; }
+  .genre-chips, .multi-artist-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .artist-tag { display: inline-flex; align-items: center; gap: 7px; max-width: 100%; border: 1px solid #66528f; border-radius: 999px; background: #302745; color: #e7ddff; padding: 5px 7px 5px 11px; font-size: 11px; }
+  .artist-tag button { width: 19px; height: 19px; border: 0; border-radius: 50%; background: #49395f; color: #fff; font-size: 15px; line-height: 1; }
+  .genre-chip { border: 1px solid #393747; border-radius: 999px; background: #242332; color: #c7c3d2; padding: 5px 9px; font-size: 9px; }
+  .genre-chip:hover, .genre-chip.active { border-color: #8869e9; background: #34294f; color: #e3d8ff; }
+  .song-language-field { min-width: 0; margin: 0; padding: 0; border: 0; }
+  .song-language-field legend { margin-bottom: 8px; }
+  .language-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; }
+  .language-option { cursor: pointer; }
+  .language-option input { position: absolute; opacity: 0; pointer-events: none; }
+  .language-option span { display: flex; min-height: 40px; align-items: center; justify-content: center; border: 1px solid #393747; border-radius: 9px; background: #171722; color: #bdb9ca; padding: 8px; font-size: 10px; transition: .15s ease; }
+  .language-option input:checked + span { border-color: #8869e9; background: #34294f; color: #e3d8ff; }
+  .language-option input:focus-visible + span { outline: 2px solid #a58aff; outline-offset: 2px; }
+</style>

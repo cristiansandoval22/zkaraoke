@@ -1,0 +1,26 @@
+---
+import AdminProductCard from "./AdminProductCard.astro";
+const { products = [], categories = [], active = false, searchTerm = "", categoryId = "", availability = "" } = Astro.props;
+---
+
+<section class:list={["view-section", active && "active"]} id="view-products">
+  <div class="page-title-row">
+    <div><p class="eyebrow">MENÚ DEL LOCAL</p><h1>Carta / Productos</h1><p class="subheading">Edita precios, imágenes y disponibilidad de los productos.</p></div>
+    <button class="btn btn-primary" data-action="new-product">＋ Nuevo producto</button>
+  </div>
+  <form class="toolbar" action="/admin" method="get">
+    <input type="hidden" name="view" value="products" />
+    <label class="search-box">⌕{" "}<input id="product-search-admin" name="productSearch" value={searchTerm} placeholder="Buscar producto..." /></label>
+    <select id="product-category-filter" name="category" aria-label="Filtrar por categoría">
+      <option value="">Todas las categorías</option>
+      {categories.map((category) => <option value={category.id} selected={category.id === categoryId}>{category.name}</option>)}
+    </select>
+    <select id="product-status-filter" name="availability" aria-label="Filtrar por disponibilidad">
+      <option value="">Todos los estados</option><option value="true" selected={availability === "true"}>Disponibles</option><option value="false" selected={availability === "false"}>Agotados</option>
+    </select>
+    <button class="btn btn-ghost" type="submit">Buscar</button>
+  </form>
+  <div class="products-grid" id="products-grid">
+    {products.length ? products.map((product) => <AdminProductCard product={product} />) : <div class="empty-box">No hay productos con estos filtros.</div>}
+  </div>
+</section>

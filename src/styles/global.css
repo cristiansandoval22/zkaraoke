@@ -528,64 +528,6 @@ button {
   .song-pagination .btn { min-width: 0; padding-inline: 10px; }
 }
 
-.song-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 15px;
-  padding: 12px;
-}
-
-.song-art {
-  flex: 0 0 43px;
-  height: 43px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #7657db, #30254e);
-  display: grid;
-  place-items: center;
-  font-size: 22px;
-}
-
-.song-info {
-  min-width: 0;
-  flex: 1;
-  display: grid;
-  gap: 3px;
-}
-
-.song-info strong {
-  font-size: 12px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.song-info > span {
-  font-size: 10px;
-  color: var(--muted);
-}
-
-.tag-row {
-  display: flex;
-  gap: 5px;
-  margin-top: 3px;
-}
-
-.tag {
-  font-size: 9px;
-  color: #c6b7ff;
-  background: #3a3057;
-  border-radius: 5px;
-  padding: 3px 6px;
-}
-
-.tag-muted {
-  background: #30303d;
-  color: #b9b7c6;
-}
-
 .summary-card {
   background: var(--panel);
   border: 1px solid var(--line);
@@ -638,6 +580,77 @@ button {
   color: var(--muted);
   font-size: 10px;
   margin-top: 4px;
+}
+
+.food-summary-item {
+  align-items: stretch;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.food-summary-product,
+.food-summary-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.food-summary-product > div {
+  min-width: 0;
+}
+
+.food-summary-product > div strong {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.food-summary-subtotal {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.food-summary-quantity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 9px;
+  background: #2a2939;
+  padding: 4px;
+}
+
+.food-summary-quantity button {
+  border: 0;
+  border-radius: 6px;
+  background: #4a3a70;
+  color: #fff;
+  width: 36px;
+  height: 36px;
+  font-size: 17px;
+  line-height: 1;
+}
+
+.food-summary-quantity span {
+  min-width: 24px;
+  font-size: 13px;
+  text-align: center;
+}
+
+.food-remove-button {
+  min-height: 36px;
+  border: 1px solid #633b48;
+  border-radius: 9px;
+  background: #38232d;
+  color: #ffb0ba;
+  padding: 0 12px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.food-remove-button:hover,
+.food-remove-button:focus-visible {
+  outline: 2px solid #ff9eaa;
+  background: #4a2936;
 }
 
 .remove-btn {
@@ -708,184 +721,10 @@ button {
   margin: 18px 0 13px;
 }
 
-.category-tabs {
-  display: flex;
-  gap: 7px;
-  overflow-x: auto;
-  padding-bottom: 6px;
-  margin-bottom: 16px;
-  scrollbar-width: none;
-}
-
-.category-tabs button {
-  flex: 0 0 auto;
-  border: 1px solid var(--line);
-  background: #1b1b28;
-  color: #c1bdce;
-  border-radius: 20px;
-  padding: 9px 14px;
-  font-size: 10px;
-  font-weight: 700;
-}
-
-.category-tabs button.active {
-  background: #7656f3;
-  border-color: #7656f3;
-  color: white;
-}
-
 .product-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
-}
-
-.product-card {
-  overflow: hidden;
-  border-radius: 16px;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  min-width: 0;
-}
-
-.product-image {
-  height: 120px;
-  background-size: cover;
-  background-position: center;
-  position: relative;
-  background-color: #292638;
-}
-
-.unavailable {
-  position: absolute;
-  right: 8px;
-  top: 8px;
-  background: #311e28;
-  color: #ffb0ba;
-  padding: 5px 8px;
-  border-radius: 7px;
-  font-size: 9px;
-}
-
-.product-body {
-  padding: 11px;
-}
-
-.product-meta {
-  display: flex;
-  justify-content: space-between;
-  gap: 5px;
-  font-size: 9px;
-  color: #b8a5ff;
-}
-
-.availability {
-  color: #ff9da8;
-}
-
-.availability.is-available {
-  color: var(--green);
-}
-
-.product-body h3 {
-  font-size: 13px;
-  margin: 8px 0 5px;
-}
-
-.product-body p {
-  font-size: 10px;
-  line-height: 1.45;
-  color: var(--muted);
-  min-height: 29px;
-  margin: 0 0 11px;
-}
-
-.product-bottom {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 5px;
-}
-
-.product-bottom > strong {
-  font-size: 12px;
-}
-
-.quantity-control {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: #2a2939;
-  border-radius: 9px;
-  padding: 4px;
-}
-
-.quantity-control button {
-  border: 0;
-  border-radius: 6px;
-  background: #4a3a70;
-  color: #fff;
-  width: 25px;
-  height: 25px;
-  font-size: 17px;
-  line-height: 1;
-}
-
-.quantity-control button:disabled {
-  opacity: 0.3;
-}
-
-.quantity-control span {
-  font-size: 11px;
-  min-width: 12px;
-  text-align: center;
-}
-
-.bottom-cart-bar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 5;
-  background: #181824f2;
-  backdrop-filter: blur(14px);
-  border-top: 1px solid #383647;
-  padding: 12px max(20px, calc((100vw - 810px) / 2));
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-body:has(.bottom-cart-bar--menu) .page-shell {
-  padding-bottom: 180px;
-}
-
-.bottom-cart-bar--menu > a {
-  position: relative;
-  z-index: 1;
-  flex: 0 0 auto;
-  min-height: 44px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  touch-action: manipulation;
-}
-
-.bottom-cart-bar > div strong,
-.bottom-cart-bar > div small {
-  display: block;
-}
-
-.bottom-cart-bar > div strong {
-  font-size: 12px;
-}
-
-.bottom-cart-bar > div small {
-  font-size: 11px;
-  color: #b9a8ff;
-  margin-top: 3px;
 }
 
 .grand-total {
@@ -993,19 +832,6 @@ body:has(.bottom-cart-bar--menu) .page-shell {
   display: none !important;
 }
 
-@media (max-width: 649px) {
-  .bottom-cart-bar--menu {
-    bottom: max(64px, calc(env(safe-area-inset-bottom) + 56px));
-    left: 12px;
-    right: 12px;
-    z-index: 30;
-    padding: 10px 12px;
-    border: 1px solid #48415f;
-    border-radius: 16px;
-    box-shadow: 0 10px 32px #0009;
-  }
-}
-
 @media (min-width: 650px) {
   .page-shell {
     padding-top: 35px;
@@ -1021,10 +847,6 @@ body:has(.bottom-cart-bar--menu) .page-shell {
 
   .product-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .product-image {
-    height: 150px;
   }
 
   .module-list {
@@ -1065,27 +887,6 @@ body:has(.bottom-cart-bar--menu) .page-shell {
 
   .product-grid {
     gap: 8px;
-  }
-
-  .product-body {
-    padding: 9px;
-  }
-
-  .product-image {
-    height: 100px;
-  }
-
-  .product-body h3 {
-    font-size: 12px;
-  }
-
-  .quantity-control {
-    gap: 4px;
-  }
-
-  .quantity-control button {
-    width: 22px;
-    height: 23px;
   }
 
   .payment-options {

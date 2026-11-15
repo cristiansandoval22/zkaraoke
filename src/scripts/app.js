@@ -108,26 +108,13 @@ if (locationSelection) {
 }
 updateLocation();
 
-// Menú de canciones: los resultados se consultan en Astro/Supabase por páginas.
+// Carrito musical: Astro genera las tarjetas; aquí solo se guarda la selección.
 let selectedSongs = read("kb_songs", []);
 let maxSongsPerOrder = MAX_SONGS;
-let visibleSongs = [];
-let nextSongCursor = null;
-let hasMoreSongs = false;
-let songPageCursors = [null];
-let currentSongPage = 0;
-let loadingSongs = false;
-let songSearchTimer = null;
-let songRequestVersion = 0;
-let activeSongRequest = null;
-const songResponseCache = new Map();
-const SONG_CACHE_TTL = 20_000;
 
 function renderSongCount() {
   const count = $("#song-count");
   if (count) count.textContent = `${selectedSongs.length}/${maxSongsPerOrder}`;
-  const summary = $("#song-summary-link");
-  if (summary) summary.href = "/resumen-musica";
 }
 
 function escapeHtml(value) {
@@ -144,81 +131,6 @@ function escapeHtml(value) {
   );
 }
 
-function getSongSearchParameters(cursor = null) {
-  const params = new URLSearchParams();
-  const term = $("#song-search")?.value.trim() || "";
-  const genre = $("#genre-filter")?.value || "";
-  const language = $("#language-filter")?.value || "";
-  if (term) params.set("q", term);
-  if (genre) params.set("genre", genre);
-  if (language) params.set("language", language);
-  if (cursor) {
-    params.set("afterTitle", cursor.title);
-    params.set("afterId", cursor.id);
-  }
-  return params;
-}
-
-function renderSongs() {
-  const list = $("#song-list");
-  if (!list) return;
-  list.innerHTML = visibleSongs.length
-    ? visibleSongs
-        .map((song) => {
-          const artist = (song.artists?.length
-            ? song.artists.map((item) => item.name).filter(Boolean).join(", ")
-            : song.artist?.name || song.artist || "Artista no registrado");
-          const genre = song.genre?.name || "Sin género";
-          const language = song.language?.name || "Sin idioma";
-          const alreadySelected = selectedSongs.some(
-            (selected) => selected.id === song.id,
-          );
-          return `
-    <article class="song-card">
-      <div class="song-art">♫</div>
-      <div class="song-info"><strong>${escapeHtml(song.title)}</strong><span>${escapeHtml(artist)}</span>
-        <div class="tag-row"><span class="tag">${escapeHtml(genre)}</span><span class="tag tag-muted">${escapeHtml(language)}</span></div>
-      </div>
-      <button class="btn btn-small ${alreadySelected ? "btn-added" : "btn-outline"}" data-add-song="${escapeHtml(song.id)}" ${alreadySelected ? "disabled" : ""}>${alreadySelected ? "Añadida" : "Pedir"}</button>
-    </article>`;
-        })
-        .join("")
-    : '<div class="empty-state">No encontramos canciones con esos filtros.</div>';
-
-  updateSongPagination();
-
-  $$("[data-add-song]", list).forEach((button) =>
-    button.addEventListener("click", () => {
-      const song = visibleSongs.find(
-        (item) => item.id === button.dataset.addSong,
-      );
-      if (!song) return;
-      if (selectedSongs.length >= maxSongsPerOrder) {
-        toast(`Máximo ${maxSongsPerOrder} canciones por pedido`);
-        return;
-      }
-      selectedSongs.push(song);
-      write("kb_songs", selectedSongs);
-      renderSongs();
-      renderSongCount();
-      toast("Canción agregada a tu pedido");
-    }),
-  );
-}
-
-function updateSongPagination(isLoading = false) {
-  const pagination = $("#song-pagination");
-  const previousButton = $("#song-page-prev");
-  const nextButton = $("#song-page-next");
-  const pageInfo = $("#song-page-info");
-  if (!pagination || !previousButton || !nextButton || !pageInfo) return;
-
-  pagination.hidden = currentSongPage === 0 && !hasMoreSongs;
-  previousButton.disabled = isLoading || currentSongPage === 0;
-  nextButton.disabled = isLoading || !hasMoreSongs;
-  pageInfo.textContent = `Página ${currentSongPage + 1}`;
-}
-
 async function loadSongFilters() {
   const response = await fetch("/api/songs/filters.json");
   if (!response.ok)
@@ -229,144 +141,57 @@ async function loadSongFilters() {
       ? Number(filters.maxSongsPerOrder)
       : MAX_SONGS;
 
-  const genreSelect = $("#genre-filter");
-  const languageSelect = $("#language-filter");
-  if (genreSelect) {
-    genreSelect.innerHTML =
-      '<option value="">Todos los géneros</option>' +
-      (filters.genres || [])
-        .map(
-          (genre) =>
-            `<option value="${escapeHtml(genre.id)}">${escapeHtml(genre.name)}</option>`,
-        )
-        .join("");
-  }
-  if (languageSelect) {
-    languageSelect.innerHTML =
-      '<option value="">Todos los idiomas</option>' +
-      (filters.languages || [])
-        .map(
-          (language) =>
-            `<option value="${escapeHtml(language.id)}">${escapeHtml(language.name)}</option>`,
-        )
-        .join("");
-  }
   renderSongCount();
 }
 
-async function fetchSongs(cursor = null, pageIndex = 0) {
-  const list = $("#song-list");
-  if (!list || loadingSongs) return;
+function updateSongCardButtons() {
+  const songList = $("#song-list");
+  if (!songList) return;
 
-  const requestVersion = ++songRequestVersion;
-  const params = getSongSearchParameters(cursor);
-  if (!cursor && params.get("q")?.trim().length === 1) {
-    visibleSongs = [];
-    nextSongCursor = null;
-    hasMoreSongs = false;
-    list.innerHTML =
-      '<div class="empty-state">Escribe al menos dos caracteres para buscar.</div>';
-    currentSongPage = 0;
-    songPageCursors = [null];
-    updateSongPagination();
+  maxSongsPerOrder = Number(songList.dataset.maxSongs) || MAX_SONGS;
+  $$("[data-song-card]", songList).forEach((card) => {
+    const button = $("[data-add-song]", card);
+    const alreadySelected = selectedSongs.some(
+      (song) => String(song.id) === button.dataset.addSong,
+    );
+    button.disabled = alreadySelected;
+    button.textContent = alreadySelected ? "Añadida" : "Pedir";
+    button.classList.toggle("btn-added", alreadySelected);
+    button.classList.toggle("btn-outline", !alreadySelected);
+  });
+  renderSongCount();
+}
+
+$("#song-list")?.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-add-song]");
+  if (!button || button.disabled) return;
+
+  const card = button.closest("[data-song-card]");
+  if (!card) return;
+
+  if (selectedSongs.length >= maxSongsPerOrder) {
+    toast(`Máximo ${maxSongsPerOrder} canciones por pedido`);
     return;
   }
-  const cacheKey = params.toString();
-  const cached = songResponseCache.get(cacheKey);
-  let result;
 
-  if (cached && cached.expiresAt > Date.now()) {
-    result = cached.value;
-  } else {
-    if (!cursor)
-      list.innerHTML = '<div class="empty-state">Cargando repertorio…</div>';
-    const controller = new AbortController();
-    activeSongRequest = controller;
-    loadingSongs = true;
-    updateSongPagination(true);
-    try {
-      const response = await fetch(`/api/songs/search.json?${cacheKey}`, {
-        signal: controller.signal,
-      });
-      const body = await response.json();
-      if (!response.ok)
-        throw new Error(body.error || "No se pudo cargar el repertorio.");
-      result = body;
-      songResponseCache.set(cacheKey, {
-        value: body,
-        expiresAt: Date.now() + SONG_CACHE_TTL,
-      });
-      if (songResponseCache.size > 100)
-        songResponseCache.delete(songResponseCache.keys().next().value);
-    } catch (error) {
-      if (requestVersion !== songRequestVersion) return;
-      if (error.name === "AbortError") return;
-      list.innerHTML = `<div class="empty-state">${escapeHtml(error.message)}</div>`;
-      return;
-    } finally {
-      if (activeSongRequest === controller) {
-        activeSongRequest = null;
-        loadingSongs = false;
-        updateSongPagination();
-      }
-    }
-  }
+  const song = JSON.parse(card.dataset.song);
+  selectedSongs.push(song);
+  write("kb_songs", selectedSongs);
+  updateSongCardButtons();
+  toast("Canción agregada a tu pedido");
+});
 
-  if (requestVersion !== songRequestVersion) return;
-  visibleSongs = result.songs;
-  currentSongPage = pageIndex;
-  songPageCursors[pageIndex] = cursor;
-  nextSongCursor = result.nextCursor;
-  hasMoreSongs = result.hasMore;
-  renderSongs();
-}
+updateSongCardButtons();
 
-function scheduleSongSearch() {
+// Búsqueda progresiva: Astro entrega cada página con las tarjetas ya renderizadas.
+const songSearchForm = $("#song-search")?.form;
+let songSearchTimer;
+$("#song-search")?.addEventListener("input", () => {
   clearTimeout(songSearchTimer);
-  songRequestVersion += 1;
-  activeSongRequest?.abort();
-  songSearchTimer = setTimeout(() => {
-    visibleSongs = [];
-    nextSongCursor = null;
-    hasMoreSongs = false;
-    songPageCursors = [null];
-    currentSongPage = 0;
-    fetchSongs();
-  }, 300);
-}
-
-["song-search", "genre-filter", "language-filter"].forEach((id) => {
-  const node = document.getElementById(id);
-  if (node)
-    node.addEventListener(
-      id === "song-search" ? "input" : "change",
-      scheduleSongSearch,
-    );
+  songSearchTimer = setTimeout(() => songSearchForm?.requestSubmit(), 350);
 });
-
-$("#song-page-next")?.addEventListener("click", () => {
-  if (!hasMoreSongs || !nextSongCursor || loadingSongs) return;
-  const nextPage = currentSongPage + 1;
-  songPageCursors[nextPage] = nextSongCursor;
-  fetchSongs(nextSongCursor, nextPage);
-  $("#catalog-heading")?.scrollIntoView({ behavior: "smooth", block: "start" });
-});
-
-$("#song-page-prev")?.addEventListener("click", () => {
-  if (currentSongPage === 0 || loadingSongs) return;
-  const previousPage = currentSongPage - 1;
-  fetchSongs(songPageCursors[previousPage] ?? null, previousPage);
-  $("#catalog-heading")?.scrollIntoView({ behavior: "smooth", block: "start" });
-});
-
-if ($("#song-list")) {
-  loadSongFilters()
-    .then(() => fetchSongs())
-    .catch((error) => {
-      console.error("No se pudieron cargar los filtros del repertorio:", error);
-      fetchSongs();
-    });
-}
+$("#genre-filter")?.addEventListener("change", () => songSearchForm?.requestSubmit());
+$("#language-filter")?.addEventListener("change", () => songSearchForm?.requestSubmit());
 
 if ($("#music-summary-list")) {
   loadSongFilters()
@@ -445,76 +270,71 @@ function cartTotal() {
   );
 }
 
-function getSafeImageUrl(value) {
-  try {
-    const url = new URL(value, window.location.origin);
-    return url.protocol === "https:" ? url.href : "";
-  } catch {
-    return "";
-  }
-}
-
-function renderMenuCategories(categories) {
+function initializeMenuCategories() {
   const tabs = $("#menu-category-tabs");
   if (!tabs) return;
-
-  tabs.innerHTML =
-    '<button type="button" data-category="all" class="active">Todos</button>' +
-    categories
-      .map(
-        (category) =>
-          `<button type="button" data-category="${escapeHtml(category.id)}">${escapeHtml(category.name)}</button>`,
-      )
-      .join("");
 
   $$("[data-category]", tabs).forEach((button) =>
     button.addEventListener("click", () => {
       activeCategory = button.dataset.category;
-      $$("[data-category]", tabs).forEach((tab) =>
-        tab.classList.toggle("active", tab === button),
-      );
-      renderProducts();
+      $$("[data-category]", tabs).forEach((tab) => {
+        const isActive = tab === button;
+        tab.classList.toggle("active", isActive);
+        tab.setAttribute("aria-pressed", String(isActive));
+      });
+      filterProductCards();
     }),
   );
 }
 
-function renderProducts() {
+function filterProductCards() {
   const list = $("#product-list");
   if (!list) return;
-  const term = ($("#product-search")?.value || "").toLowerCase().trim();
-  const filtered = products.filter(
-    (product) =>
-      (activeCategory === "all" || product.category_id === activeCategory) &&
-      `${product.name} ${product.description || ""}`
-        .toLowerCase()
-        .includes(term),
-  );
-  list.innerHTML =
-    filtered
-      .map((p) => {
-        const qty = cart[p.id] || 0;
-        const imageUrl = getSafeImageUrl(p.image);
-        return `<article class="product-card">
-      <div class="product-image" ${imageUrl ? `style="background-image:url('${escapeHtml(imageUrl)}')"` : ""}>${!p.available ? '<span class="unavailable">Agotado</span>' : ""}</div>
-      <div class="product-body"><div class="product-meta"><span>${escapeHtml(p.category)}</span><span class="availability ${p.available ? "is-available" : ""}">${p.available ? "Disponible" : "No disponible"}</span></div>
-      <h3>${escapeHtml(p.name)}</h3><p>${escapeHtml(p.description || "")}</p>
-      <div class="product-bottom"><strong>${money(p.price)}</strong>
-      <div class="quantity-control"><button data-minus="${p.id}" ${qty === 0 ? "disabled" : ""}>−</button><span>${qty}</span><button data-plus="${p.id}" ${!p.available ? "disabled" : ""}>+</button></div></div></div></article>`;
-      })
-      .join("") ||
-    '<div class="empty-state">No hay productos en esta categoría.</div>';
-  $$("[data-plus]", list).forEach((b) =>
-    b.addEventListener("click", () => changeQty(b.dataset.plus, 1)),
-  );
-  $$("[data-minus]", list).forEach((b) =>
-    b.addEventListener("click", () => changeQty(b.dataset.minus, -1)),
-  );
+
+  const term = $("#product-search")?.value.toLowerCase().trim() || "";
+  let visibleCount = 0;
+  $$(".product-card[data-product-id]", list).forEach((card) => {
+    const matchesCategory =
+      activeCategory === "all" ||
+      card.dataset.productCategoryId === activeCategory;
+    const matchesSearch = card.dataset.productSearch.includes(term);
+    card.hidden = !matchesCategory || !matchesSearch;
+    if (!card.hidden) visibleCount++;
+  });
+
+  const emptyState = $("#product-empty-state", list);
+  if (emptyState) emptyState.hidden = visibleCount > 0;
 }
+
+function updateProductQuantities() {
+  $$(".product-card[data-product-id]").forEach((card) => {
+    const quantity = Number(cart[card.dataset.productId] || 0);
+    const addButton = $("[data-product-add]", card);
+    const quantityControl = $("[data-product-quantity]", card);
+
+    addButton.hidden = quantity > 0;
+    quantityControl.hidden = quantity === 0;
+    $("[data-product-quantity-value]", quantityControl).textContent = quantity;
+  });
+}
+
+$("#product-list")?.addEventListener("click", (event) => {
+  const button = event.target.closest(
+    "[data-product-add], [data-product-minus], [data-product-plus]",
+  );
+  if (!button || button.disabled) return;
+  const card = button.closest("[data-product-id]");
+  if (!card) return;
+  changeQty(
+    card.dataset.productId,
+    button.hasAttribute("data-product-minus") ? -1 : 1,
+  );
+});
 function changeQty(id, delta) {
   cart[id] = Math.max(0, (cart[id] || 0) + delta);
   if (!cart[id]) delete cart[id];
   write("kb_cart", cart);
-  renderProducts();
+  updateProductQuantities();
   renderCartTotals();
   renderFoodSummary();
 }
@@ -530,29 +350,35 @@ function renderCartTotals() {
 async function loadMenuCatalog() {
   const list = $("#product-list");
   const summaryList = $("#food-summary-list");
-  // La carta y el resumen necesitan los mismos productos para mostrar el carrito.
   if (!list && !summaryList) return;
 
-  if (list)
-    list.innerHTML = '<div class="empty-state">Cargando la carta…</div>';
   try {
-    const response = await fetch("/api/menu/catalog.json");
-    const result = await response.json();
-    if (!response.ok)
-      throw new Error(result.error || "No se pudo cargar la carta.");
+    if (list?.dataset.catalogReady === "true") {
+      // La carta ya llegó renderizada por Astro; aquí solo leemos sus datos.
+      products = $$(".product-card[data-product-id]", list).map((card) => ({
+        id: card.dataset.productId,
+        name: card.dataset.productName,
+        price: Number(card.dataset.productPrice),
+        category_id: card.dataset.productCategoryId,
+        available: card.dataset.productAvailable === "true",
+      }));
+    } else {
+      // El resumen necesita los nombres y precios del carrito local.
+      const response = await fetch("/api/menu/catalog.json");
+      const result = await response.json();
+      if (!response.ok)
+        throw new Error(result.error || "No se pudo cargar la carta.");
 
-    products = (result.products || []).map((product) => ({
-      id: product.id,
-      name: product.name,
-      description: product.description || "",
-      price: Number(product.price),
-      category_id: product.category_id,
-      category: product.category?.name || "Sin categoría",
-      image: product.image_url || "",
-      available: product.available,
-    }));
+      products = (result.products || []).map((product) => ({
+        id: product.id,
+        name: product.name,
+        price: Number(product.price),
+        category_id: product.category_id,
+        available: product.available,
+      }));
+    }
 
-    // Quita del carrito local productos que ya no existen en la carta.
+    // Quita del carrito local productos que ya no existen o están agotados.
     const productIds = new Set(
       products
         .filter((product) => product.available)
@@ -563,21 +389,24 @@ async function loadMenuCatalog() {
     );
     write("kb_cart", cart);
 
-    renderMenuCategories(result.categories || []);
-    renderProducts();
+    initializeMenuCategories();
+    filterProductCards();
+    updateProductQuantities();
     renderCartTotals();
     renderFoodSummary();
   } catch (error) {
-    if (list)
-      list.innerHTML = `<div class="empty-state">${escapeHtml(error.message)}</div>`;
+    const emptyState = $("#product-empty-state", list || document);
+    if (emptyState) {
+      emptyState.textContent = error.message;
+      emptyState.hidden = false;
+    }
     if (summaryList)
       summaryList.innerHTML = `<div class="empty-state">${escapeHtml(error.message)}</div>`;
   }
 }
 
-$("#product-search")?.addEventListener("input", renderProducts);
+$("#product-search")?.addEventListener("input", filterProductCards);
 loadMenuCatalog();
-
 function renderFoodSummary() {
   const list = $("#food-summary-list");
   if (!list) return;
@@ -586,7 +415,20 @@ function renderFoodSummary() {
     ? items
         .map(
           ({ product, qty }) => `
-    <div class="food-summary-item"><div><strong>${product.name}</strong><small>${qty} × ${money(product.price)}</small></div><strong>${money(qty * product.price)}</strong></div>`,
+    <article class="food-summary-item">
+      <div class="food-summary-product">
+        <div><strong>${escapeHtml(product.name)}</strong><small>${qty} × ${money(product.price)}</small></div>
+        <strong class="food-summary-subtotal">${money(qty * product.price)}</strong>
+      </div>
+      <div class="food-summary-actions">
+        <div class="food-summary-quantity" aria-label="Cantidad de ${escapeHtml(product.name)}">
+          <button type="button" data-food-minus="${escapeHtml(product.id)}" aria-label="Quitar una unidad de ${escapeHtml(product.name)}">−</button>
+          <span aria-live="polite">${qty}</span>
+          <button type="button" data-food-plus="${escapeHtml(product.id)}" aria-label="Agregar una unidad más de ${escapeHtml(product.name)}">+</button>
+        </div>
+        <button type="button" class="food-remove-button" data-food-remove="${escapeHtml(product.id)}">Quitar producto</button>
+      </div>
+    </article>`,
         )
         .join("")
     : '<div class="empty-state">Tu carrito está vacío.</div>';
@@ -596,6 +438,29 @@ function renderFoodSummary() {
   if (submit) submit.disabled = !items.length;
 }
 renderFoodSummary();
+const foodSummaryList = $("#food-summary-list");
+if (foodSummaryList) {
+  foodSummaryList.addEventListener("click", (event) => {
+    const button = event.target.closest(
+      "[data-food-minus], [data-food-plus], [data-food-remove]",
+    );
+    if (!button) return;
+
+    const productId =
+      button.dataset.foodMinus ||
+      button.dataset.foodPlus ||
+      button.dataset.foodRemove;
+    if (button.hasAttribute("data-food-remove")) {
+      delete cart[productId];
+      write("kb_cart", cart);
+      renderFoodSummary();
+      renderCartTotals();
+      return;
+    }
+
+    changeQty(productId, button.hasAttribute("data-food-plus") ? 1 : -1);
+  });
+}
 const sendFood = $("#send-food");
 if (sendFood)
   sendFood.addEventListener("click", () => {

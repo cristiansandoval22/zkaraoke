@@ -1,0 +1,41 @@
+---
+const { category } = Astro.props;
+---
+
+<article class="category-card">
+  <div class="category-emoji">{category.icon || "•"}</div>
+  <div class="category-card__details">
+    <strong>{category.name}</strong>
+    <small>Orden de aparición: {category.display_order}</small>
+  </div>
+  <div class="category-actions">
+    <button type="button" class="row-action" data-edit-category={category.id}>Editar</button>
+    <button type="button" class="row-action danger" data-delete-category={category.id} data-delete-title={category.name}>Eliminar</button>
+  </div>
+</article>
+
+<style>
+  .category-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    padding: 15px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--panel);
+  }
+  .category-emoji {
+    display: grid;
+    width: 42px;
+    height: 42px;
+    place-items: center;
+    border-radius: 11px;
+    background: #302846;
+    font-size: 20px;
+  }
+  .category-card__details { flex: 1; min-width: 0; }
+  .category-card__details strong, .category-card__details small { display: block; }
+  .category-card__details strong { font-size: 11px; }
+  .category-card__details small { margin-top: 5px; color: #8f8c9f; font-size: 9px; }
+</style>

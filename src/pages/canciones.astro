@@ -3,6 +3,98 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import PageHeading from "../components/PageHeading.astro";
 import LocationPill from "../components/LocationPill.astro";
 import PopularArtists from "../components/client/PopularArtists.astro";
+import SongCard from "../components/SongCard.astro";
+import { GET as getSongSearch } from "./api/songs/search.json.js";
+import { GET as getSongFilters } from "./api/songs/filters.json.js";
+
+const query = Astro.url.searchParams;
+const term = (query.get("q") || "").trim();
+const selectedGenre = query.get("genre") || "";
+const selectedLanguage = query.get("language") || "";
+
+const filtersResponse = await getSongFilters({ cache: Astro.cache });
+const filters = await filtersResponse.json();
+const genres = filters.genres || [];
+const languages = filters.languages || [];
+const maxSongsPerOrder = Number(filters.maxSongsPerOrder) || 2;
+
+const searchUrl = new URL(Astro.url);
+searchUrl.pathname = "/api/songs/search.json";
+const searchResponse = await getSongSearch({
+  request: new Request(searchUrl),
+  cache: Astro.cache,
+});
+const searchResult = await searchResponse.json();
+const songs = searchResult.songs || [];
+const hasMoreSongs = Boolean(searchResult.hasMore);
+const nextSongCursor = searchResult.nextCursor || null;
+
+let currentCursor = null;
+if (query.has("afterTitle") && query.has("afterId")) {
+  currentCursor = {
+    title: query.get("afterTitle"),
+    id: query.get("afterId"),
+  };
+}
+
+let pageCursors = [null];
+try {
+  const parsedCursors = JSON.parse(query.get("pages") || "null");
+  if (
+    Array.isArray(parsedCursors) &&
+    parsedCursors.length > 0 &&
+    parsedCursors.length <= 50 &&
+    parsedCursors.every(
+      (cursor) =>
+        cursor === null ||
+        (typeof cursor.title === "string" &&
+          cursor.title.length <= 300 &&
+          typeof cursor.id === "string"),
+    )
+  ) {
+    pageCursors = parsedCursors;
+  }
+} catch {
+  // Si el historial de paginación no es válido, se empieza desde la página uno.
+}
+
+if (!currentCursor) {
+  pageCursors = [null];
+} else {
+  const lastCursor = pageCursors.at(-1);
+  if (
+    !lastCursor ||
+    lastCursor.title !== currentCursor.title ||
+    lastCursor.id !== currentCursor.id
+  ) {
+    pageCursors.push(currentCursor);
+  }
+}
+
+function createPageUrl(cursors:any) {
+  const params = new URLSearchParams();
+  if (term) params.set("q", term);
+  if (selectedGenre) params.set("genre", selectedGenre);
+  if (selectedLanguage) params.set("language", selectedLanguage);
+
+  const cursor = cursors.at(-1);
+  if (cursor) {
+    params.set("afterTitle", cursor.title);
+    params.set("afterId", cursor.id);
+  }
+  params.set("pages", JSON.stringify(cursors));
+  return `/canciones?${params.toString()}`;
+}
+
+const previousPageUrl =
+  pageCursors.length > 1 ? createPageUrl(pageCursors.slice(0, -1)) : null;
+const nextPageUrl =
+  hasMoreSongs && nextSongCursor
+    ? createPageUrl([...pageCursors, nextSongCursor])
+    : null;
+const pageNumber = pageCursors.length;
+
+Astro.cache.set({ maxAge: 21_600, swr: 21_600, tags: ["songs"] });
 ---
 
 <BaseLayout title="Pedir música | Karaoke & Bar">
@@ -18,7 +110,7 @@ import PopularArtists from "../components/client/PopularArtists.astro";
   <PageHeading
     eyebrow="CATÁLOGO MUSICAL"
     title="Elige tu canción."
-    description="¡Tú tienes el micrófono! Puedes pedir hasta 2 canciones."
+    description={`¡Tú tienes el micrófono! Puedes pedir hasta ${maxSongsPerOrder} canciones.`}
   />
   <LocationPill />
 
@@ -48,27 +140,40 @@ import PopularArtists from "../components/client/PopularArtists.astro";
   <!-- <PopularArtists /> -->
 
   <!-- Panel de Búsqueda y Filtros -->
-  <section class="filter-panel" aria-label="Filtros de canciones">
+  <form class="filter-panel" aria-label="Filtros de canciones" action="/canciones" method="get">
     <label class="search-field" for="song-search">
       <span aria-hidden="true">⌕</span>
       <input
         id="song-search"
         type="search"
+        name="q"
         placeholder="Buscar canción o artista..."
         autocomplete="off"
+        value={term}
       />
     </label>
 
     <div class="filter-row">
-      <select id="genre-filter" aria-label="Filtrar por género">
+      <select id="genre-filter" name="genre" aria-label="Filtrar por género">
         <option value="">Todos los géneros</option>
+        {genres.map((genre: any) => (
+          <option value={genre.id} selected={genre.id === selectedGenre}>
+            {genre.name}
+          </option>
+        ))}
       </select>
 
-      <select id="language-filter" aria-label="Filtrar por idioma">
+      <select id="language-filter" name="language" aria-label="Filtrar por idioma">
         <option value="">Todos los idiomas</option>
+        {languages.map((language: any) => (
+          <option value={language.id} selected={language.id === selectedLanguage}>
+            {language.name}
+          </option>
+        ))}
       </select>
     </div>
-  </section>
+    <button class="btn btn-outline song-filter-submit" type="submit">Buscar</button>
+  </form>
 
   <!-- Listado de Canciones -->
   <section aria-labelledby="catalog-heading">
@@ -77,12 +182,30 @@ import PopularArtists from "../components/client/PopularArtists.astro";
       <span>Recomendadas para ti</span>
     </header>
 
-    <div id="song-list" class="song-list"></div>
+    <div id="song-list" class="song-list" data-max-songs={maxSongsPerOrder}>
+      {searchResult.error ? (
+        <div class="empty-state">{searchResult.error}</div>
+      ) : term.length === 1 ? (
+        <div class="empty-state">Escribe al menos dos caracteres para buscar.</div>
+      ) : songs.length ? (
+        songs.map((song: any) => <SongCard song={song} />)
+      ) : (
+        <div class="empty-state">No encontramos canciones con esos filtros.</div>
+      )}
+    </div>
 
-    <nav class="song-pagination" id="song-pagination" aria-label="Paginación de canciones" hidden>
-      <button type="button" id="song-page-prev" class="btn btn-outline" disabled>← Anterior</button>
-      <span id="song-page-info" aria-live="polite">Página 1</span>
-      <button type="button" id="song-page-next" class="btn btn-outline" disabled>Siguiente →</button>
+    <nav class="song-pagination" aria-label="Paginación de canciones">
+      {previousPageUrl ? (
+        <a href={previousPageUrl} class="btn btn-outline">← Anterior</a>
+      ) : (
+        <span class="btn btn-outline" aria-disabled="true">← Anterior</span>
+      )}
+      <span aria-live="polite">Página {pageNumber}</span>
+      {nextPageUrl ? (
+        <a href={nextPageUrl} class="btn btn-outline">Siguiente →</a>
+      ) : (
+        <span class="btn btn-outline" aria-disabled="true">Siguiente →</span>
+      )}
     </nav>
   </section>
 
@@ -90,3 +213,9 @@ import PopularArtists from "../components/client/PopularArtists.astro";
     import "../scripts/app.js";
   </script>
 </BaseLayout>
+
+<style>
+  .song-filter-submit {
+    justify-self: start;
+  }
+</style>

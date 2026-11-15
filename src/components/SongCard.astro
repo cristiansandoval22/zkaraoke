@@ -1,21 +1,110 @@
 ---
 const { song } = Astro.props;
+
 const artistNames = song.artists?.length
-  ? song.artists.map((artist) => artist.name).filter(Boolean).join(", ")
+  ? song.artists.map((artist:any) => artist.name).filter(Boolean).join(", ")
   : song.artist?.name || song.artist || "Artista no registrado";
+
+const songForCart = {
+  id: song.id,
+  title: song.title,
+  artists: song.artists?.length
+    ? song.artists
+    : [{ name: artistNames }],
+  genre: song.genre || null,
+  language: song.language || null,
+};
 ---
 
-<article class="song-card">
-  <div class="song-art">♫</div>
-  <div class="song-info">
-    <strong>{song.title}</strong>
-    <span>{artistNames}</span>
-    <div class="tag-row">
-      <span class="tag">{song.genre}</span>
-      <span class="tag tag-muted">{song.language}</span>
+<article class="song-card" data-song-card data-song={JSON.stringify(songForCart)}>
+  <div class="song-card__art" aria-hidden="true">♫</div>
+
+  <div class="song-card__info">
+    <strong class="song-card__title">{song.title}</strong>
+    <span class="song-card__artists">{artistNames}</span>
+
+    <div class="song-card__tags">
+      <span class="song-card__tag">{song.genre?.name || "Sin género"}</span>
+      <span class="song-card__tag song-card__tag--muted">
+        {song.language?.name || "Sin idioma"}
+      </span>
     </div>
   </div>
-  <button class="btn btn-small btn-outline" data-add-song={song.id}>
+
+  <button
+    type="button"
+    class="btn btn-small btn-outline song-card__add"
+    data-add-song={song.id}
+  >
     Pedir
   </button>
 </article>
+
+<style>
+  .song-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    padding: 12px;
+    border: 1px solid var(--line);
+    border-radius: 15px;
+    background: var(--panel);
+  }
+
+  .song-card__art {
+    display: grid;
+    flex: 0 0 43px;
+    height: 43px;
+    place-items: center;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #7657db, #30254e);
+    font-size: 22px;
+  }
+
+  .song-card__info {
+    display: grid;
+    flex: 1;
+    gap: 3px;
+    min-width: 0;
+  }
+
+  .song-card__title {
+    overflow: hidden;
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .song-card__artists {
+    overflow: hidden;
+    color: var(--muted);
+    font-size: 10px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .song-card__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 3px;
+  }
+
+  .song-card__tag {
+    border-radius: 5px;
+    background: #3a3057;
+    color: #c6b7ff;
+    padding: 3px 6px;
+    font-size: 9px;
+  }
+
+  .song-card__tag--muted {
+    background: #30303d;
+    color: #b9b7c6;
+  }
+
+  .song-card__add {
+    flex: 0 0 auto;
+  }
+</style>
