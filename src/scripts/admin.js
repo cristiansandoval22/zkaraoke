@@ -50,11 +50,6 @@ async function revalidatePublicCache(tags) {
 function cacheUpdateMessage() {
   return "Se guardó el cambio, pero no se pudo actualizar la caché. El contenido público puede tardar en renovarse.";
 }
-function showLogin(message = "") {
-  $("#login-screen").hidden = false;
-  $("#admin-app").hidden = true;
-  $("#login-error").textContent = message;
-}
 function showApp() {
   const app = $("#admin-app");
   $("#admin-email").textContent = app.dataset.adminEmail || "Administrador";
@@ -72,24 +67,6 @@ function showApp() {
     .filter((option) => option.value)
     .map((option) => ({ id: option.value, name: option.textContent }));
 }
-$("#login-form").addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const form = new FormData(event.currentTarget);
-  const button = $("#login-submit");
-  button.disabled = true;
-  button.textContent = "Verificando…";
-  $("#login-error").textContent = "";
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email: form.get("email"),
-    password: form.get("password"),
-  });
-  button.disabled = false;
-  const arrow = document.createElement("span");
-  arrow.textContent = "→";
-  button.replaceChildren("Iniciar sesión ", arrow);
-  if (error) return ($("#login-error").textContent = errorMessage(error));
-  window.location.assign("/admin");
-});
 $("#logout-btn").addEventListener("click", async () => {
   await supabase.auth.signOut();
   window.location.assign("/admin");
