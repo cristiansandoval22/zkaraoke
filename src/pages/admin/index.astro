@@ -10,15 +10,20 @@ import AdminCategoriesSection from "../../components/admin/AdminCategoriesSectio
 import AdminTablesSection from "../../components/admin/AdminTablesSection.astro";
 import { createSupabaseSsrClient } from "../../lib/supabase-ssr.js";
 
+// 1. Conexión al Supabase del servidor, usando la sesión guardada en las cookies del usuario.
 const supabase = createSupabaseSsrClient({
   request: Astro.request,
   cookies: Astro.cookies,
 });
 
+// Esta página muestra información privada. Le indicamos al navegador que no la guarde para reutilizarla después.
 Astro.response.headers.set("Cache-Control", "private, no-store, max-age=0");
+
+// 2. Supabase valida el inicio de sesión. Luego comprobamos que el correo esté autorizado en la tabla admin_users.
 const { data: claimsResult } = await supabase.auth.getClaims();
-const claims = claimsResult?.claims;
-const userId = claims?.sub;
+// Supabase confirma quién inició sesión; esos datos no los decide el navegador.
+const userData = claimsResult?.claims;
+const userId = userData?.sub;
 /** @type {{ id: string, email: string } | null} */
 let adminUser = null;
 let loginMessage = "";
@@ -31,7 +36,7 @@ if (userId) {
     .maybeSingle();
 
   if (!adminError && adminRecord) {
-    adminUser = { id: userId, email: claims.email || "" };
+    adminUser = { id: userId, email: userData.email || "" };
   } else if (!adminError) {
     await supabase.auth.signOut();
     loginMessage = "Esta cuenta no tiene permisos de administrador.";
@@ -44,7 +49,19 @@ if (userId) {
   }
 }
 
+// 3. Preparamos la sección del panel que se mostrará.
 const isAdmin = Boolean(adminUser);
+
+// Si el usuario no puede entrar, lo enviamos a la página de acceso.
+if (!isAdmin) {
+  const errorCode = loginMessage.includes("permisos")
+    ? "no-autorizado"
+    : loginMessage
+      ? "verificacion"
+      : "";
+  const loginUrl = errorCode ? `/admin/login?error=${errorCode}` : "/admin/login";
+  return Astro.redirect(loginUrl);
+}
 /** @type {string[]} */
 const validViews = [
   "overview",
@@ -69,14 +86,15 @@ const viewLabels = {
   tables: "Mesas y barra",
   settings: "Configuración",
 };
+// 4. Leemos los filtros y la página solicitada desde la dirección web.
 const query = Astro.url.searchParams;
 /** @param {string} name */
-const positivePage = (name:any) => {
+const getPageNumber = (name) => {
   const value = Number.parseInt(query.get(name) || "0", 10);
   return Number.isFinite(value) && value >= 0 ? value : 0;
 };
-const songPage = positivePage("songPage");
-const artistPage = positivePage("artistPage");
+const songPage = getPageNumber("songPage");
+const artistPage = getPageNumber("artistPage");
 const songPageSize = 30;
 const artistPageSize = 30;
 const songSearch = (query.get("songSearch") || "")
@@ -96,6 +114,8 @@ const languageId = query.get("language") || "";
 const productCategoryId = query.get("category") || "";
 const productAvailability = query.get("availability") || "";
 
+// Estas definiciones solo ayudan al editor a reconocer los datos de cada lista.
+// No crean ni modifican tablas en Supabase. Puedes ignorarlas al leer la parte visual.
 /** Una canción y sus relaciones tal como se muestran en la tabla del panel. */
 /** @typedef {{ id: string, title: string, artist_id: string | null, genre_id: string | null, language_id: string | null, legacy_artist?: { name: string } | null, song_artists?: Array<{ position: number, artist?: { name: string } | null }>, genres?: { name: string } | null, languages?: { name: string } | null }} AdminSong */
 /** @typedef {{ id: string, name: string }} AdminOption */
@@ -133,9 +153,9 @@ let settings = {
 };
 let overviewCounts = [0, 0, 0, 0];
 
-/** @param {any} queryBuilder @returns {Promise<any[]>} */
-async function readRows(queryBuilder) {
-  const { data, error } = await queryBuilder;
+/** @param {any} consulta @returns {Promise<any[]>} */
+async function getRows(consulta) {
+  const { data, error } = await consulta;
   if (error) {
     console.error("No se pudo cargar información del panel:", error);
     return [];
@@ -143,12 +163,14 @@ async function readRows(queryBuilder) {
   return data || [];
 }
 
+// 5. Solo cargamos datos del negocio cuando la cuenta sí es administradora.
 if (isAdmin) {
+  // Pedimos estos datos juntos porque ninguno depende de los otros.
   const [genreRows, languageRows, categoryRows, settingsResult, counts] =
     await Promise.all([
-      readRows(supabase.from("genres").select("id,name").order("name")),
-      readRows(supabase.from("languages").select("id,name").order("name")),
-      readRows(
+      getRows(supabase.from("genres").select("id,name").order("name")),
+      getRows(supabase.from("languages").select("id,name").order("name")),
+      getRows(
         supabase
           .from("menu_categories")
           .select("id,name,icon,display_order")
@@ -157,11 +179,11 @@ if (isAdmin) {
       supabase.from("settings").select("*").eq("id", true).maybeSingle(),
       Promise.all(
         ["songs", "artists", "menu_items", "tables"].map(async (table) => {
-          const queryBuilder = supabase
+          const consulta = supabase
             .from(table)
             .select("*", { count: "exact", head: true });
-          if (table === "tables") queryBuilder.eq("active", true);
-          const { count, error } = await queryBuilder;
+          if (table === "tables") consulta.eq("active", true);
+          const { count, error } = await consulta;
           if (error) console.error(`No se pudo contar ${table}:`, error);
           return count || 0;
         }),
@@ -170,11 +192,12 @@ if (isAdmin) {
   genres = genreRows;
   languages = languageRows;
   categories = categoryRows;
-  settings = { ...settings, ...(settingsResult.data || {}) };
+  settings = settingsResult.data || settings;
   if (settingsResult.error)
     console.error("No se pudo cargar la configuración:", settingsResult.error);
   overviewCounts = counts;
 
+  // 6. Preparamos la lista de canciones con los filtros actuales.
   let songQuery = supabase
     .from("songs")
     .select(
@@ -184,7 +207,7 @@ if (isAdmin) {
     .order("title");
   if (songSearch) {
     const safeTerm = songSearch.replace(/[,%()]/g, " ").trim();
-    const artistMatches = await readRows(
+    const artistMatches = await getRows(
       supabase
         .from("artists")
         .select("id")
@@ -195,7 +218,7 @@ if (isAdmin) {
     let matchingSongIds = [];
     if (artistMatches.length) {
       const artistIds = artistMatches.map((artist) => artist.id);
-      const links = await readRows(
+      const links = await getRows(
         supabase
           .from("song_artists")
           .select("song_id")
@@ -224,6 +247,7 @@ if (isAdmin) {
   songRows = songsResult || [];
   songTotal = songsCount || 0;
 
+  // 7. Cargamos artistas y productos con sus filtros actuales.
   let artistQuery = supabase
     .from("artists")
     .select("id,name,image_url", { count: "exact" })
@@ -259,58 +283,14 @@ if (isAdmin) {
     productQuery = productQuery.eq("category_id", productCategoryId);
   if (productAvailability)
     productQuery = productQuery.eq("available", productAvailability === "true");
-  products = await readRows(productQuery);
-  tables = await readRows(supabase.from("tables").select("*").order("name"));
+  products = await getRows(productQuery);
+
+  // Las mesas se cargan completas porque el panel permite administrar cada espacio.
+  tables = await getRows(supabase.from("tables").select("*").order("name"));
 }
 ---
 
 <AdminLayout>
-  <div class="login-screen" id="login-screen" hidden={isAdmin}>
-    <div class="login-card">
-      <div class="login-logo">Z</div>
-      <p class="eyebrow">Z-KARAOKE · ADMINISTRACIÓN</p>
-      <h1>Bienvenido de nuevo</h1>
-      <p class="login-subtitle">
-        Ingresa con tu cuenta autorizada para administrar el local.
-      </p>
-      <form id="login-form">
-        <label>
-          Correo electrónico
-          <input
-            type="email"
-            name="email"
-            placeholder="admin@zkaraoke.com"
-            autocomplete="username"
-            required
-          />
-        </label>
-        <label>
-          Contraseña
-          <input
-            type="password"
-            name="password"
-            placeholder="••••••••"
-            autocomplete="current-password"
-            required
-          />
-        </label>
-        <p class="form-error" id="login-error" aria-live="polite">
-          {loginMessage}
-        </p>
-        <button
-          class="btn btn-primary btn-block"
-          type="submit"
-          id="login-submit"
-        >
-          Iniciar sesión <span>→</span>
-        </button>
-      </form>
-      <small class="login-foot">
-        Acceso privado · Protegido por Supabase Auth + RLS
-      </small>
-    </div>
-  </div>
-
   <div
     class="admin-app"
     id="admin-app"

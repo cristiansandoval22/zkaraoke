@@ -1,0 +1,25 @@
+---
+import "../styles/global.css";
+const { title = "Karaoke & Bar", description } = Astro.props;
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#10101a" />
+    <meta
+      name="description"
+      content={description || "Pide canciones, comida y bebidas en Karaoke & Bar."}
+    />
+
+    <title>{title}</title>
+    <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js" defer></script>
+  </head>
+  <body>
+    <main class="page-shell">
+      <slot />
+    </main>
+  </body>
+</html>
