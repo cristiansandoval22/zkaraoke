@@ -1,0 +1,45 @@
+---
+const { table } = Astro.props;
+---
+
+<article class="table-space-card">
+  <div class="space-icon" aria-hidden="true">▦</div>
+  <div class="space-details">
+    <strong>{table.name}</strong>
+    <small>Capacidad: {table.capacity} {table.capacity === 1 ? "persona" : "personas"}</small>
+    <span class:list={["product-state", table.active ? "on" : "off"]}>
+      {table.active ? "Activo" : "Inactivo"}
+    </span>
+  </div>
+  <div class="category-actions">
+    <button type="button" class="row-action" data-edit-table={table.id}>Editar</button>
+    <button type="button" class="row-action danger" data-delete-table={table.id} data-delete-title={table.name}>Eliminar</button>
+  </div>
+</article>
+
+<style>
+  .table-space-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    padding: 15px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--panel);
+  }
+  .space-icon {
+    display: grid;
+    width: 42px;
+    height: 42px;
+    place-items: center;
+    border-radius: 11px;
+    background: #302846;
+    font-size: 20px;
+  }
+  .space-details { flex: 1; min-width: 0; }
+  .space-details strong, .space-details small { display: block; }
+  .space-details strong { font-size: 11px; }
+  .space-details small { margin-top: 5px; color: #8f8c9f; font-size: 9px; }
+  .space-details .product-state { margin-top: 7px; }
+</style>

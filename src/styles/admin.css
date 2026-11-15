@@ -689,36 +689,6 @@ tr:hover td {
   background: #1e1e2c;
 }
 
-.primary-cell {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-}
-
-.primary-cell strong {
-  color: #f0edf8;
-  font-size: 10px;
-}
-
-.song-symbol {
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  background: #34294f;
-  color: #c5b3ff;
-  border-radius: 8px;
-  font-size: 15px;
-}
-
-.soft-tag {
-  background: #302943;
-  color: #c3b3ff;
-  padding: 5px 8px;
-  border-radius: 6px;
-  font-size: 9px;
-}
-
 .align-right {
   text-align: right;
   white-space: nowrap;
@@ -756,35 +726,11 @@ tr:hover td {
   gap: 14px;
 }
 
-.admin-product-card {
-  border: 1px solid var(--line);
-  background: var(--panel);
-  border-radius: 13px;
-  overflow: hidden;
-  min-width: 0;
-}
-
-.admin-product-image {
-  height: 145px;
-  background: #292738 center/cover;
-  display: grid;
-  place-items: center;
-  position: relative;
-  color: #77748b;
-  font-size: 10px;
-}
-
 .product-state {
   font-size: 8px;
   padding: 5px 7px;
   border-radius: 6px;
   display: inline-block;
-}
-
-.admin-product-image .product-state {
-  position: absolute;
-  top: 9px;
-  right: 9px;
 }
 
 .product-state.on {
@@ -797,40 +743,6 @@ tr:hover td {
   color: #ff9eaa;
 }
 
-.admin-product-body {
-  padding: 13px;
-}
-
-.admin-product-body > small {
-  font-size: 9px;
-  color: #aa99e7;
-}
-
-.admin-product-body h3 {
-  font-size: 12px;
-  margin: 8px 0 5px;
-}
-
-.admin-product-body p {
-  font-size: 9px;
-  color: #9290a3;
-  line-height: 1.5;
-  min-height: 28px;
-  margin: 0 0 12px;
-}
-
-.admin-product-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-top: 1px solid #302f3d;
-  padding-top: 10px;
-}
-
-.admin-product-footer > strong {
-  font-size: 12px;
-}
-
 .category-grid,
 .tables-grid {
   display: grid;
@@ -838,62 +750,10 @@ tr:hover td {
   gap: 12px;
 }
 
-.category-card,
-.table-space-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 15px;
-  border: 1px solid var(--line);
-  background: var(--panel);
-  border-radius: 12px;
-  min-width: 0;
-}
-
-.category-emoji,
-.space-icon {
-  width: 42px;
-  height: 42px;
-  display: grid;
-  place-items: center;
-  background: #302846;
-  border-radius: 11px;
-  font-size: 20px;
-}
-
-.category-card > div:nth-child(2),
-.space-details {
-  flex: 1;
-  min-width: 0;
-}
-
-.category-card strong,
-.category-card small,
-.space-details strong,
-.space-details small {
-  display: block;
-}
-
-.category-card strong,
-.space-details strong {
-  font-size: 11px;
-}
-
-.category-card small,
-.space-details small {
-  font-size: 9px;
-  color: #8f8c9f;
-  margin-top: 5px;
-}
-
 .category-actions {
   display: flex;
   gap: 2px;
   align-items: center;
-}
-
-.space-details .product-state {
-  margin-top: 7px;
 }
 
 .settings-form {
@@ -1096,220 +956,6 @@ tr:hover td {
 
 .modal--song .song-field--full {
   grid-column: 1 / -1;
-}
-
-.song-field {
-  position: relative;
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: 7px;
-}
-
-.song-field-label {
-  color: #d2cfdd;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.required-mark {
-  color: #ff8293;
-}
-
-.song-input-wrap {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.song-input-wrap input {
-  width: 100%;
-  min-width: 0;
-  height: 42px;
-  border: 1px solid #383748;
-  border-radius: 9px;
-  outline: 0;
-  background: #13131e;
-  color: #f5f4fa;
-  padding: 0 12px 0 38px;
-  font-size: 12px;
-}
-
-.song-input-wrap input::placeholder {
-  color: #777587;
-}
-
-.song-input-wrap input:focus {
-  border-color: #9678ff;
-  box-shadow: 0 0 0 3px #9678ff24;
-}
-
-.song-input-icon {
-  position: absolute;
-  left: 13px;
-  z-index: 1;
-  color: #a999dc;
-  font-size: 16px;
-  pointer-events: none;
-}
-
-.song-field-help {
-  color: #8e8b9e;
-  font-size: 9px;
-  line-height: 1.4;
-}
-
-.song-combobox-menu {
-  position: absolute;
-  top: calc(100% - 18px);
-  right: 0;
-  left: 0;
-  z-index: 30;
-  max-height: 220px;
-  overflow-y: auto;
-  padding: 5px;
-  border: 1px solid #414052;
-  border-radius: 10px;
-  background: #1b1b28;
-  box-shadow: 0 16px 35px #0008;
-}
-
-.combobox-option {
-  display: block;
-  width: 100%;
-  border: 0;
-  border-radius: 6px;
-  background: transparent;
-  color: #efedf7;
-  padding: 9px 10px;
-  text-align: left;
-  font-size: 11px;
-}
-
-.combobox-option:hover,
-.combobox-option:focus-visible {
-  outline: 0;
-  background: #302745;
-  color: #d6c8ff;
-}
-
-.combobox-empty {
-  padding: 10px;
-  color: #aaa7b8;
-  font-size: 10px;
-}
-
-.genre-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.multi-artist-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
-  min-height: 0;
-}
-
-.artist-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  max-width: 100%;
-  border: 1px solid #66528f;
-  border-radius: 999px;
-  background: #302745;
-  color: #e7ddff;
-  padding: 5px 7px 5px 11px;
-  font-size: 11px;
-}
-
-.artist-tag button {
-  width: 19px;
-  height: 19px;
-  border: 0;
-  border-radius: 50%;
-  background: #49395f;
-  color: #fff;
-  font-size: 15px;
-  line-height: 1;
-}
-
-.artist-tag button:hover,
-.artist-tag button:focus-visible {
-  outline: 2px solid #c6b2ff;
-  background: #7955aa;
-}
-
-.genre-chip {
-  border: 1px solid #393747;
-  border-radius: 999px;
-  background: #242332;
-  color: #c7c3d2;
-  padding: 5px 9px;
-  font-size: 9px;
-}
-
-.genre-chip:hover,
-.genre-chip.active {
-  border-color: #8869e9;
-  background: #34294f;
-  color: #e3d8ff;
-}
-
-.song-language-field {
-  min-width: 0;
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
-
-.song-language-field legend {
-  margin-bottom: 8px;
-}
-
-.language-options {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 8px;
-}
-
-.language-option {
-  cursor: pointer;
-}
-
-.language-option input {
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.language-option span {
-  display: flex;
-  min-height: 40px;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid #393747;
-  border-radius: 9px;
-  background: #171722;
-  color: #bdb9ca;
-  padding: 8px;
-  font-size: 10px;
-  transition: 0.15s ease;
-}
-
-.language-option input:checked + span {
-  border-color: #8869e9;
-  background: #34294f;
-  color: #e3d8ff;
-}
-
-.language-option input:focus-visible + span {
-  outline: 2px solid #a58aff;
-  outline-offset: 2px;
 }
 
 .modal--song .modal-actions {

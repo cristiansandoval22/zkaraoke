@@ -1,0 +1,58 @@
+---
+import AdminSongRow from "./AdminSongRow.astro";
+
+const {
+  songs = [], genres = [], languages = [], total = 0, page = 0, pageSize = 30,
+  searchTerm = "", genreId = "", languageId = "", active = false,
+} = Astro.props;
+const pageCount = Math.max(1, Math.ceil(total / pageSize));
+function pageHref(pageNumber) {
+  const params = new URLSearchParams({ view: "songs", songPage: String(pageNumber) });
+  if (searchTerm) params.set("songSearch", searchTerm);
+  if (genreId) params.set("genre", genreId);
+  if (languageId) params.set("language", languageId);
+  return `/admin?${params.toString()}`;
+}
+---
+
+<section class:list={["view-section", active && "active"]} id="view-songs">
+  <div class="page-title-row">
+    <div>
+      <p class="eyebrow">BIBLIOTECA MUSICAL</p>
+      <h1>Canciones</h1>
+      <p class="subheading">Administra el catálogo que aparece en el módulo de pedidos de música.</p>
+    </div>
+    <button class="btn btn-primary" data-action="new-song">＋ Nueva canción</button>
+  </div>
+
+  <form class="toolbar" action="/admin" method="get">
+    <input type="hidden" name="view" value="songs" />
+    <label class="search-box">⌕{" "}<input id="song-search-admin" name="songSearch" value={searchTerm} placeholder="Buscar título o artista..." /></label>
+    <select id="song-genre-filter" name="genre" aria-label="Filtrar por género">
+      <option value="">Todos los géneros</option>
+      {genres.map((genre) => <option value={genre.id} selected={genre.id === genreId}>{genre.name}</option>)}
+    </select>
+    <select id="song-language-filter" name="language" aria-label="Filtrar por idioma">
+      <option value="">Todos los idiomas</option>
+      {languages.map((language) => <option value={language.id} selected={language.id === languageId}>{language.name}</option>)}
+    </select>
+    <button class="btn btn-ghost" type="submit">Buscar</button>
+  </form>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>CANCIÓN</th><th>ARTISTA</th><th>GÉNERO</th><th>IDIOMA</th><th class="align-right">ACCIONES</th></tr></thead>
+      <tbody id="songs-tbody">
+        {songs.length ? songs.map((song) => <AdminSongRow song={song} />) : <tr><td colspan="5" class="table-message">No se encontraron canciones.</td></tr>}
+      </tbody>
+    </table>
+  </div>
+
+  <nav class="pagination" aria-label="Paginación de canciones">
+    <span>{total.toLocaleString("es-PE")} canciones · Página {page + 1} de {pageCount}</span>
+    <div>
+      <a class="btn btn-ghost btn-small" href={pageHref(Math.max(0, page - 1))} aria-disabled={page === 0}>← Anterior</a>
+      <a class="btn btn-ghost btn-small" href={pageHref(Math.min(pageCount - 1, page + 1))} aria-disabled={page + 1 >= pageCount}>Siguiente →</a>
+    </div>
+  </nav>
+</section>

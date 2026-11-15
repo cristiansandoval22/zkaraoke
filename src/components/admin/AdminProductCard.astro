@@ -1,0 +1,70 @@
+---
+const { product } = Astro.props;
+let imageUrl = "";
+try {
+  const parsedImageUrl = new URL(product.image_url || "");
+  if (parsedImageUrl.protocol === "https:") imageUrl = parsedImageUrl.href;
+} catch {
+  imageUrl = "";
+}
+---
+
+<article class="admin-product-card">
+  <div class="admin-product-image">
+    {imageUrl ? <img src={imageUrl} alt="" loading="lazy" /> : <span>Sin imagen</span>}
+    <span class:list={["product-state", product.available ? "on" : "off"]}>
+      {product.available ? "Disponible" : "Agotado"}
+    </span>
+  </div>
+  <div class="admin-product-body">
+    <small>{product.menu_categories?.icon || "•"} {product.menu_categories?.name || "Sin categoría"}</small>
+    <h3>{product.name}</h3>
+    <p>{product.description || "Sin descripción"}</p>
+    <div class="admin-product-footer">
+      <strong>S/ {Number(product.price || 0).toFixed(2)}</strong>
+      <div>
+        <button type="button" class="row-action" data-edit-product={product.id}>Editar</button>
+        <button type="button" class="row-action danger" data-delete-product={product.id} data-delete-title={product.name}>Eliminar</button>
+      </div>
+    </div>
+  </div>
+</article>
+
+<style>
+  .admin-product-card {
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 13px;
+    background: var(--panel);
+  }
+  .admin-product-image {
+    position: relative;
+    display: grid;
+    height: 145px;
+    place-items: center;
+    background: #292738;
+    color: #77748b;
+    font-size: 10px;
+  }
+  .admin-product-image img { width: 100%; height: 100%; object-fit: cover; }
+  .admin-product-image .product-state { position: absolute; top: 9px; right: 9px; }
+  .admin-product-body { padding: 13px; }
+  .admin-product-body > small { color: #aa99e7; font-size: 9px; }
+  .admin-product-body h3 { margin: 8px 0 5px; font-size: 12px; }
+  .admin-product-body p {
+    min-height: 28px;
+    margin: 0 0 12px;
+    color: #9290a3;
+    font-size: 9px;
+    line-height: 1.5;
+  }
+  .admin-product-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid #302f3d;
+    padding-top: 10px;
+  }
+  .admin-product-footer > strong { font-size: 12px; }
+</style>

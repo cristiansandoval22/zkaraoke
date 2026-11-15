@@ -2,12 +2,270 @@
 import AdminLayout from "../../layouts/AdminLayout.astro";
 import AdminSidebar from "../../components/AdminSidebar.astro";
 import StatCard from "../../components/StatCard.astro";
-import Modal from "../../components/Modal.astro";
 import ArtistManager from "../../components/admin/ArtistManager.astro";
+import AdminRecordModal from "../../components/admin/AdminRecordModal.astro";
+import AdminSongsSection from "../../components/admin/AdminSongsSection.astro";
+import AdminProductsSection from "../../components/admin/AdminProductsSection.astro";
+import AdminCategoriesSection from "../../components/admin/AdminCategoriesSection.astro";
+import AdminTablesSection from "../../components/admin/AdminTablesSection.astro";
+import { createSupabaseSsrClient } from "../../lib/supabase-ssr.js";
+
+const supabase = createSupabaseSsrClient({
+  request: Astro.request,
+  cookies: Astro.cookies,
+});
+
+Astro.response.headers.set("Cache-Control", "private, no-store, max-age=0");
+const { data: claimsResult } = await supabase.auth.getClaims();
+const claims = claimsResult?.claims;
+const userId = claims?.sub;
+/** @type {{ id: string, email: string } | null} */
+let adminUser = null;
+let loginMessage = "";
+
+if (userId) {
+  const { data: adminRecord, error: adminError } = await supabase
+    .from("admin_users")
+    .select("user_id")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (!adminError && adminRecord) {
+    adminUser = { id: userId, email: claims.email || "" };
+  } else if (!adminError) {
+    await supabase.auth.signOut();
+    loginMessage = "Esta cuenta no tiene permisos de administrador.";
+  } else {
+    console.error(
+      "No se pudo validar los permisos del administrador:",
+      adminError,
+    );
+    loginMessage = "No se pudo validar el acceso. Intenta nuevamente.";
+  }
+}
+
+const isAdmin = Boolean(adminUser);
+/** @type {string[]} */
+const validViews = [
+  "overview",
+  "songs",
+  "artists",
+  "products",
+  "categories",
+  "tables",
+  "settings",
+];
+const requestedView = Astro.url.searchParams.get("view") || "overview";
+const activeView = validViews.includes(requestedView)
+  ? requestedView
+  : "overview";
+/** @type {Record<string, string>} */
+const viewLabels = {
+  overview: "Resumen",
+  songs: "Canciones",
+  artists: "Artistas",
+  products: "Carta / Productos",
+  categories: "Categorías",
+  tables: "Mesas y barra",
+  settings: "Configuración",
+};
+const query = Astro.url.searchParams;
+/** @param {string} name */
+const positivePage = (name:any) => {
+  const value = Number.parseInt(query.get(name) || "0", 10);
+  return Number.isFinite(value) && value >= 0 ? value : 0;
+};
+const songPage = positivePage("songPage");
+const artistPage = positivePage("artistPage");
+const songPageSize = 30;
+const artistPageSize = 30;
+const songSearch = (query.get("songSearch") || "")
+  .trim()
+  .replace(/\s+/g, " ")
+  .slice(0, 80);
+const artistSearch = (query.get("artistSearch") || "")
+  .trim()
+  .replace(/\s+/g, " ")
+  .slice(0, 80);
+const productSearch = (query.get("productSearch") || "")
+  .trim()
+  .replace(/\s+/g, " ")
+  .slice(0, 80);
+const genreId = query.get("genre") || "";
+const languageId = query.get("language") || "";
+const productCategoryId = query.get("category") || "";
+const productAvailability = query.get("availability") || "";
+
+/** Una canción y sus relaciones tal como se muestran en la tabla del panel. */
+/** @typedef {{ id: string, title: string, artist_id: string | null, genre_id: string | null, language_id: string | null, legacy_artist?: { name: string } | null, song_artists?: Array<{ position: number, artist?: { name: string } | null }>, genres?: { name: string } | null, languages?: { name: string } | null }} AdminSong */
+/** @typedef {{ id: string, name: string }} AdminOption */
+/** @typedef {{ id: string, name: string, image_url: string | null }} AdminArtist */
+/** @typedef {{ id: string, name: string, icon: string | null, display_order: number }} AdminCategory */
+/** @typedef {{ id: string, name: string, description: string | null, price: number, category_id: string | null, image_url: string | null, available: boolean, menu_categories?: { name: string, icon: string | null } | null }} AdminProduct */
+/** @typedef {{ id: string, name: string, capacity: number, active: boolean }} AdminTable */
+
+/** @type {AdminSong[]} */
+let songRows = [];
+let songTotal = 0;
+/** @type {AdminArtist[]} */
+let artistRows = [];
+let artistTotal = 0;
+/** @type {AdminOption[]} */
+let genres = [];
+/** @type {AdminOption[]} */
+let languages = [];
+/** @type {AdminCategory[]} */
+let categories = [];
+/** @type {AdminProduct[]} */
+let products = [];
+/** @type {AdminTable[]} */
+let tables = [];
+/** @type {{ business_name: string | null, address: string | null, whatsapp_number: string | null, whatsapp_bar: string | null, schedule: string | null, max_songs_per_order: number | null, logo_url: string | null, is_open: boolean }} */
+let settings = {
+  business_name: "",
+  address: "",
+  whatsapp_number: "",
+  whatsapp_bar: "",
+  schedule: "",
+  max_songs_per_order: 2,
+  logo_url: "",
+  is_open: false,
+};
+let overviewCounts = [0, 0, 0, 0];
+
+/** @param {any} queryBuilder @returns {Promise<any[]>} */
+async function readRows(queryBuilder) {
+  const { data, error } = await queryBuilder;
+  if (error) {
+    console.error("No se pudo cargar información del panel:", error);
+    return [];
+  }
+  return data || [];
+}
+
+if (isAdmin) {
+  const [genreRows, languageRows, categoryRows, settingsResult, counts] =
+    await Promise.all([
+      readRows(supabase.from("genres").select("id,name").order("name")),
+      readRows(supabase.from("languages").select("id,name").order("name")),
+      readRows(
+        supabase
+          .from("menu_categories")
+          .select("id,name,icon,display_order")
+          .order("display_order"),
+      ),
+      supabase.from("settings").select("*").eq("id", true).maybeSingle(),
+      Promise.all(
+        ["songs", "artists", "menu_items", "tables"].map(async (table) => {
+          const queryBuilder = supabase
+            .from(table)
+            .select("*", { count: "exact", head: true });
+          if (table === "tables") queryBuilder.eq("active", true);
+          const { count, error } = await queryBuilder;
+          if (error) console.error(`No se pudo contar ${table}:`, error);
+          return count || 0;
+        }),
+      ),
+    ]);
+  genres = genreRows;
+  languages = languageRows;
+  categories = categoryRows;
+  settings = { ...settings, ...(settingsResult.data || {}) };
+  if (settingsResult.error)
+    console.error("No se pudo cargar la configuración:", settingsResult.error);
+  overviewCounts = counts;
+
+  let songQuery = supabase
+    .from("songs")
+    .select(
+      "id,title,artist_id,genre_id,language_id,legacy_artist:artists!songs_artist_id_fkey(name),song_artists(position,artist:artists(name)),genres(name),languages(name)",
+      { count: "exact" },
+    )
+    .order("title");
+  if (songSearch) {
+    const safeTerm = songSearch.replace(/[,%()]/g, " ").trim();
+    const artistMatches = await readRows(
+      supabase
+        .from("artists")
+        .select("id")
+        .ilike("name", `%${safeTerm}%`)
+        .limit(5000),
+    );
+    /** @type {string[]} */
+    let matchingSongIds = [];
+    if (artistMatches.length) {
+      const artistIds = artistMatches.map((artist) => artist.id);
+      const links = await readRows(
+        supabase
+          .from("song_artists")
+          .select("song_id")
+          .in("artist_id", artistIds),
+      );
+      matchingSongIds = [...new Set(links.map((link) => link.song_id))];
+    }
+    if (matchingSongIds.length) {
+      songQuery = songQuery.or(
+        `title.ilike.%${safeTerm}%,id.in.(${matchingSongIds.join(",")})`,
+      );
+    } else {
+      songQuery = songQuery.ilike("title", `%${safeTerm}%`);
+    }
+  }
+  if (genreId) songQuery = songQuery.eq("genre_id", genreId);
+  if (languageId) songQuery = songQuery.eq("language_id", languageId);
+  const songOffset = songPage * songPageSize;
+  const {
+    data: songsResult,
+    count: songsCount,
+    error: songsError,
+  } = await songQuery.range(songOffset, songOffset + songPageSize - 1);
+  if (songsError)
+    console.error("No se pudo cargar canciones para el panel:", songsError);
+  songRows = songsResult || [];
+  songTotal = songsCount || 0;
+
+  let artistQuery = supabase
+    .from("artists")
+    .select("id,name,image_url", { count: "exact" })
+    .order("name");
+  if (artistSearch)
+    artistQuery = artistQuery.ilike(
+      "name",
+      `%${artistSearch.replace(/[\%_,]/g, " ")}%`,
+    );
+  const artistOffset = artistPage * artistPageSize;
+  const {
+    data: artistResult,
+    count: artistsCount,
+    error: artistsError,
+  } = await artistQuery.range(artistOffset, artistOffset + artistPageSize - 1);
+  if (artistsError)
+    console.error("No se pudo cargar artistas para el panel:", artistsError);
+  artistRows = artistResult || [];
+  artistTotal = artistsCount || 0;
+
+  let productQuery = supabase
+    .from("menu_items")
+    .select(
+      "id,name,description,price,category_id,image_url,available,menu_categories(name,icon)",
+    )
+    .order("name");
+  if (productSearch)
+    productQuery = productQuery.ilike(
+      "name",
+      `%${productSearch.replace(/[\%_,]/g, " ")}%`,
+    );
+  if (productCategoryId)
+    productQuery = productQuery.eq("category_id", productCategoryId);
+  if (productAvailability)
+    productQuery = productQuery.eq("available", productAvailability === "true");
+  products = await readRows(productQuery);
+  tables = await readRows(supabase.from("tables").select("*").order("name"));
+}
 ---
 
 <AdminLayout>
-  <div class="login-screen" id="login-screen">
+  <div class="login-screen" id="login-screen" hidden={isAdmin}>
     <div class="login-card">
       <div class="login-logo">Z</div>
       <p class="eyebrow">Z-KARAOKE · ADMINISTRACIÓN</p>
@@ -36,7 +294,9 @@ import ArtistManager from "../../components/admin/ArtistManager.astro";
             required
           />
         </label>
-        <p class="form-error" id="login-error" aria-live="polite"></p>
+        <p class="form-error" id="login-error" aria-live="polite">
+          {loginMessage}
+        </p>
         <button
           class="btn btn-primary btn-block"
           type="submit"
@@ -51,8 +311,14 @@ import ArtistManager from "../../components/admin/ArtistManager.astro";
     </div>
   </div>
 
-  <div class="admin-app" id="admin-app" hidden>
-    <AdminSidebar />
+  <div
+    class="admin-app"
+    id="admin-app"
+    data-admin-email={adminUser?.email || ""}
+    data-active-view={activeView}
+    hidden={!isAdmin}
+  >
+    <AdminSidebar activeView={activeView} />
     <div class="main-area">
       <header class="topbar">
         <button class="mobile-menu" id="mobile-menu" aria-label="Abrir menú">
@@ -61,18 +327,23 @@ import ArtistManager from "../../components/admin/ArtistManager.astro";
         <div class="breadcrumb">
           <span>Panel</span>
           <b>/</b>
-          <strong id="breadcrumb-current">Resumen</strong>
+          <strong id="breadcrumb-current">{viewLabels[activeView]}</strong>
         </div>
         <div class="topbar-right">
           <span class="status-pill">
             <i></i>
-            <span id="business-status">Comprobando</span>
+            <span id="business-status">
+              {settings.is_open ? "Local abierto" : "Local cerrado"}
+            </span>
           </span>
           <span class="top-avatar">Z</span>
         </div>
       </header>
       <main class="content">
-        <section class="view-section active" id="view-overview">
+        <section
+          class:list={["view-section", activeView === "overview" && "active"]}
+          id="view-overview"
+        >
           <div class="page-title-row">
             <div>
               <p class="eyebrow">VISTA GENERAL</p>
@@ -87,14 +358,14 @@ import ArtistManager from "../../components/admin/ArtistManager.astro";
           <div class="stats-grid">
             <StatCard
               label="Canciones registradas"
-              value="—"
+              value={overviewCounts[0].toLocaleString("es-PE")}
               detail="Catálogo musical"
               icon="♫"
               id="stat-songs"
             />
             <StatCard
               label="Artistas"
-              value="—"
+              value={overviewCounts[1].toLocaleString("es-PE")}
               detail="Biblioteca de artistas"
               icon="♬"
               tone="blue"
@@ -102,7 +373,7 @@ import ArtistManager from "../../components/admin/ArtistManager.astro";
             />
             <StatCard
               label="Productos en carta"
-              value="—"
+              value={overviewCounts[2].toLocaleString("es-PE")}
               detail="Productos registrados"
               icon="▣"
               tone="orange"
@@ -110,7 +381,7 @@ import ArtistManager from "../../components/admin/ArtistManager.astro";
             />
             <StatCard
               label="Mesas activas"
-              value="—"
+              value={overviewCounts[3].toLocaleString("es-PE")}
               detail="Mesas y espacios habilitados"
               icon="▦"
               tone="green"
@@ -178,163 +449,72 @@ import ArtistManager from "../../components/admin/ArtistManager.astro";
             <div class="info-grid">
               <div>
                 <small>Nombre comercial</small>
-                <strong id="info-business">—</strong>
+                <strong id="info-business">
+                  {settings.business_name || "—"}
+                </strong>
               </div>
               <div>
                 <small>WhatsApp</small>
-                <strong id="info-whatsapp">—</strong>
+                <strong id="info-whatsapp">
+                  {settings.whatsapp_number || "Sin configurar"}
+                </strong>
               </div>
               <div>
                 <small>Límite de canciones</small>
-                <strong id="info-limit">—</strong>
+                <strong id="info-limit">
+                  {settings.max_songs_per_order
+                    ? `${settings.max_songs_per_order} canciones`
+                    : "—"}
+                </strong>
               </div>
               <div>
                 <small>Horario</small>
-                <strong id="info-schedule">—</strong>
+                <strong id="info-schedule">
+                  {settings.schedule || "Sin configurar"}
+                </strong>
               </div>
             </div>
           </article>
         </section>
 
-        <section class="view-section" id="view-songs">
-          <div class="page-title-row">
-            <div>
-              <p class="eyebrow">BIBLIOTECA MUSICAL</p>
-              <h1>Canciones</h1>
-              <p class="subheading">
-                Administra el catálogo que aparece en el módulo de pedidos de
-                música.
-              </p>
-            </div>
-            <button class="btn btn-primary" data-action="new-song">
-              ＋ Nueva canción
-            </button>
-          </div>
-          <div class="toolbar">
-            <label class="search-box">
-              ⌕{" "}
-              <input
-                id="song-search-admin"
-                placeholder="Buscar título o artista..."
-              />
-            </label>
-            <select id="song-genre-filter">
-              <option value="">Todos los géneros</option>
-            </select>
-            <select id="song-language-filter">
-              <option value="">Todos los idiomas</option>
-            </select>
-            <button class="btn btn-ghost" id="song-refresh">
-              ↻ Actualizar
-            </button>
-          </div>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>CANCIÓN</th>
-                  <th>ARTISTA</th>
-                  <th>GÉNERO</th>
-                  <th>IDIOMA</th>
-                  <th class="align-right">ACCIONES</th>
-                </tr>
-              </thead>
-              <tbody id="songs-tbody">
-                <tr>
-                  <td colspan="5" class="table-message">
-                    Cargando canciones…
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <div class="pagination">
-            <span id="songs-pagination-info">—</span>
-            <div>
-              <button class="btn btn-ghost btn-small" id="songs-prev">
-                ← Anterior
-              </button>
-              <button class="btn btn-ghost btn-small" id="songs-next">
-                Siguiente →
-              </button>
-            </div>
-          </div>
-        </section>
+        <AdminSongsSection
+          songs={songRows}
+          genres={genres}
+          languages={languages}
+          total={songTotal}
+          page={songPage}
+          pageSize={songPageSize}
+          searchTerm={songSearch}
+          genreId={genreId}
+          languageId={languageId}
+          active={activeView === "songs"}
+        />
+        <ArtistManager
+          artists={artistRows}
+          total={artistTotal}
+          page={artistPage}
+          pageSize={artistPageSize}
+          searchTerm={artistSearch}
+          active={activeView === "artists"}
+        />
+        <AdminProductsSection
+          products={products}
+          categories={categories}
+          searchTerm={productSearch}
+          categoryId={productCategoryId}
+          availability={productAvailability}
+          active={activeView === "products"}
+        />
+        <AdminCategoriesSection
+          categories={categories}
+          active={activeView === "categories"}
+        />
+        <AdminTablesSection tables={tables} active={activeView === "tables"} />
 
-        <ArtistManager />
-
-        <section class="view-section" id="view-products">
-          <div class="page-title-row">
-            <div>
-              <p class="eyebrow">MENÚ DEL LOCAL</p>
-              <h1>Carta / Productos</h1>
-              <p class="subheading">
-                Edita precios, imágenes y disponibilidad de los productos.
-              </p>
-            </div>
-            <button class="btn btn-primary" data-action="new-product">
-              ＋ Nuevo producto
-            </button>
-          </div>
-          <div class="toolbar">
-            <label class="search-box">
-              ⌕{" "}
-              <input
-                id="product-search-admin"
-                placeholder="Buscar producto..."
-              />
-            </label>
-            <select id="product-category-filter">
-              <option value="">Todas las categorías</option>
-            </select>
-            <select id="product-status-filter">
-              <option value="">Todos los estados</option>
-              <option value="true">Disponibles</option>
-              <option value="false">Agotados</option>
-            </select>
-            <button class="btn btn-ghost" id="product-refresh">
-              ↻ Actualizar
-            </button>
-          </div>
-          <div class="products-grid" id="products-grid">
-            <div class="table-message">Cargando productos…</div>
-          </div>
-        </section>
-
-        <section class="view-section" id="view-categories">
-          <div class="page-title-row">
-            <div>
-              <p class="eyebrow">ORGANIZACIÓN DE CARTA</p>
-              <h1>Categorías</h1>
-              <p class="subheading">
-                Organiza los productos que se muestran en la carta.
-              </p>
-            </div>
-            <button class="btn btn-primary" data-action="new-category">
-              ＋ Nueva categoría
-            </button>
-          </div>
-          <div class="category-grid" id="categories-grid"></div>
-        </section>
-
-        <section class="view-section" id="view-tables">
-          <div class="page-title-row">
-            <div>
-              <p class="eyebrow">DISTRIBUCIÓN DEL LOCAL</p>
-              <h1>Mesas y barra</h1>
-              <p class="subheading">
-                Configura los espacios disponibles para que los clientes
-                seleccionen su ubicación.
-              </p>
-            </div>
-            <button class="btn btn-primary" data-action="new-table">
-              ＋ Nuevo espacio
-            </button>
-          </div>
-          <div class="tables-grid" id="tables-grid"></div>
-        </section>
-
-        <section class="view-section" id="view-settings">
+        <section
+          class:list={["view-section", activeView === "settings" && "active"]}
+          id="view-settings"
+        >
           <div class="page-title-row">
             <div>
               <p class="eyebrow">PERSONALIZACIÓN</p>
@@ -351,16 +531,25 @@ import ArtistManager from "../../components/admin/ArtistManager.astro";
               <div class="form-grid">
                 <label>
                   Nombre comercial
-                  <input name="business_name" required />
+                  <input
+                    name="business_name"
+                    value={settings.business_name || ""}
+                    required
+                  />
                 </label>
                 <label>
                   Dirección
-                  <input name="address" placeholder="Dirección del local" />
+                  <input
+                    name="address"
+                    value={settings.address || ""}
+                    placeholder="Dirección del local"
+                  />
                 </label>
                 <label>
                   WhatsApp principal
                   <input
                     name="whatsapp_number"
+                    value={settings.whatsapp_number || ""}
                     inputmode="tel"
                     placeholder="519XXXXXXXX"
                   />
@@ -369,6 +558,7 @@ import ArtistManager from "../../components/admin/ArtistManager.astro";
                   WhatsApp de barra / caja
                   <input
                     name="whatsapp_bar"
+                    value={settings.whatsapp_bar || ""}
                     inputmode="tel"
                     placeholder="519XXXXXXXX"
                   />
@@ -377,6 +567,7 @@ import ArtistManager from "../../components/admin/ArtistManager.astro";
                   Horario de atención
                   <input
                     name="schedule"
+                    value={settings.schedule || ""}
                     placeholder="Lunes a domingo desde las 6pm"
                   />
                 </label>
@@ -384,6 +575,7 @@ import ArtistManager from "../../components/admin/ArtistManager.astro";
                   Máximo de canciones por pedido
                   <input
                     name="max_songs_per_order"
+                    value={settings.max_songs_per_order || 2}
                     type="number"
                     min="1"
                     max="20"
@@ -398,11 +590,20 @@ import ArtistManager from "../../components/admin/ArtistManager.astro";
               <div class="form-grid">
                 <label>
                   URL del logotipo
-                  <input name="logo_url" type="url" placeholder="https://..." />
+                  <input
+                    name="logo_url"
+                    value={settings.logo_url || ""}
+                    type="url"
+                    placeholder="https://..."
+                  />
                 </label>
                 <label class="toggle-field">
                   Local abierto para pedidos{" "}
-                  <input name="is_open" type="checkbox" />
+                  <input
+                    name="is_open"
+                    type="checkbox"
+                    checked={Boolean(settings.is_open)}
+                  />
                   <span>
                     Permite que el frontend indique que el local está
                     atendiendo.
@@ -422,7 +623,11 @@ import ArtistManager from "../../components/admin/ArtistManager.astro";
       </main>
     </div>
   </div>
-  <Modal />
+  <AdminRecordModal
+    genres={genres}
+    languages={languages}
+    categories={categories}
+  />
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script>
     import "../../scripts/admin.js";

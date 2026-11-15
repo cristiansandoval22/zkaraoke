@@ -1,0 +1,14 @@
+---
+import AdminTableCard from "./AdminTableCard.astro";
+const { tables = [], active = false } = Astro.props;
+---
+
+<section class:list={["view-section", active && "active"]} id="view-tables">
+  <div class="page-title-row">
+    <div><p class="eyebrow">DISTRIBUCIÓN DEL LOCAL</p><h1>Mesas y barra</h1><p class="subheading">Configura los espacios disponibles para que los clientes seleccionen su ubicación.</p></div>
+    <button class="btn btn-primary" data-action="new-table">＋ Nuevo espacio</button>
+  </div>
+  <div class="tables-grid" id="tables-grid">
+    {tables.length ? tables.map((table) => <AdminTableCard table={table} />) : <div class="empty-box">No hay espacios registrados.</div>}
+  </div>
+</section>

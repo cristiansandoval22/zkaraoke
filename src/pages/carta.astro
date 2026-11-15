@@ -3,6 +3,21 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import PageHeading from "../components/PageHeading.astro";
 import LocationPill from "../components/LocationPill.astro";
 import BottomCartBar from "../components/BottomCartBar.astro";
+import ProductCard from "../components/ProductCard.astro";
+import MenuCategoryTabs from "../components/MenuCategoryTabs.astro";
+import { getMenuCatalog } from "../lib/menu.js";
+
+let categories = [];
+let products = [];
+let catalogError = "";
+
+try {
+  ({ categories, products } = await getMenuCatalog());
+  Astro.cache.set({ maxAge: 86_400, swr: 86_400, tags: ["menu"] });
+} catch (error) {
+  console.error("No se pudo renderizar la carta:", error);
+  catalogError = "No se pudo cargar la carta. Intenta recargar la página.";
+}
 ---
 
 <BaseLayout title="Carta | Karaoke & Bar">
@@ -26,12 +41,13 @@ import BottomCartBar from "../components/BottomCartBar.astro";
       placeholder="Buscar en la carta..."
     />
   </label>
-  <div
-    class="category-tabs"
-    id="menu-category-tabs"
-    aria-label="Filtrar por categoría"
-  ></div>
-  <div id="product-list" class="product-grid"></div>
+  <MenuCategoryTabs categories={categories} />
+  <div id="product-list" class="product-grid" data-catalog-ready="true">
+    {products.map((product:any) => <ProductCard product={product} />)}
+    <div class="empty-state product-list__empty" id="product-empty-state" hidden={products.length > 0}>
+      {catalogError || "No hay productos en esta categoría."}
+    </div>
+  </div>
   <BottomCartBar />
   <script>
     import "../scripts/app.js";

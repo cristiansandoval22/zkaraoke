@@ -1,0 +1,52 @@
+---
+const { song } = Astro.props;
+const artistNames = song.song_artists
+  ?.sort((left, right) => left.position - right.position)
+  .map((item) => item.artist?.name)
+  .filter(Boolean)
+  .join(", ");
+---
+
+<tr>
+  <td>
+    <div class="primary-cell">
+      <span class="song-symbol" aria-hidden="true">♫</span>
+      <strong>{song.title}</strong>
+    </div>
+  </td>
+  <td>{artistNames || song.legacy_artist?.name || "—"}</td>
+  <td><span class="soft-tag">{song.genres?.name || "—"}</span></td>
+  <td>{song.languages?.name || "—"}</td>
+  <td class="align-right">
+    <button type="button" class="row-action" data-edit-song={song.id}>Editar</button>
+    <button
+      type="button"
+      class="row-action danger"
+      data-delete-song={song.id}
+      data-delete-title={song.title}
+    >Eliminar</button>
+  </td>
+</tr>
+
+<style>
+  .primary-cell { display: flex; align-items: center; gap: 9px; }
+  .primary-cell strong { color: #f0edf8; font-size: 10px; }
+  .song-symbol {
+    display: grid;
+    width: 28px;
+    height: 28px;
+    place-items: center;
+    border-radius: 8px;
+    background: #34294f;
+    color: #c5b3ff;
+    font-size: 15px;
+  }
+  .soft-tag {
+    border-radius: 6px;
+    background: #302943;
+    color: #c3b3ff;
+    padding: 5px 8px;
+    font-size: 9px;
+  }
+  .align-right { text-align: right; white-space: nowrap; }
+</style>

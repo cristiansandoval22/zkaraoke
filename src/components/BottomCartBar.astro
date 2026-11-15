@@ -18,3 +18,65 @@ const {
     <span>→</span>
   </a>
 </aside>
+
+<style>
+  .bottom-cart-bar {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border-top: 1px solid #383647;
+    background: #181824f2;
+    padding: 12px max(20px, calc((100vw - 810px) / 2));
+    backdrop-filter: blur(14px);
+  }
+
+  .bottom-cart-bar > div strong,
+  .bottom-cart-bar > div small {
+    display: block;
+  }
+
+  .bottom-cart-bar > div strong {
+    font-size: 12px;
+  }
+
+  .bottom-cart-bar > div small {
+    margin-top: 3px;
+    color: #b9a8ff;
+    font-size: 11px;
+  }
+
+  .bottom-cart-bar--menu > a {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    touch-action: manipulation;
+  }
+
+  :global(body:has(.bottom-cart-bar--menu) .page-shell) {
+    padding-bottom: 180px;
+  }
+
+  @media (max-width: 649px) {
+    .bottom-cart-bar--menu {
+      right: 12px;
+      bottom: max(64px, calc(env(safe-area-inset-bottom) + 56px));
+      left: 12px;
+      z-index: 30;
+      border: 1px solid #48415f;
+      border-radius: 16px;
+      padding: 10px 12px;
+      box-shadow: 0 10px 32px #0009;
+    }
+  }
+</style>

@@ -1,6 +1,8 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import PageHeading from "../components/PageHeading.astro";
+import YapeIcon from "../components/icons/YapeIcon.astro";
+import PlinIcon from "../components/icons/PlinIcon.astro";
 ---
 
 <BaseLayout title="Resumen de pedido | Karaoke & Bar">
@@ -30,12 +32,12 @@ import PageHeading from "../components/PageHeading.astro";
     <div class="payment-options">
       <label class="payment-option">
         <input type="radio" name="payment" value="Yape" checked />
-        <span>💜</span>
+        <YapeIcon />
         <strong>Yape</strong>
       </label>
       <label class="payment-option">
         <input type="radio" name="payment" value="Plin" />
-        <span>💚</span>
+        <PlinIcon />
         <strong>Plin</strong>
       </label>
       <label class="payment-option">

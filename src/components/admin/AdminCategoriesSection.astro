@@ -1,0 +1,14 @@
+---
+import AdminCategoryCard from "./AdminCategoryCard.astro";
+const { categories = [], active = false } = Astro.props;
+---
+
+<section class:list={["view-section", active && "active"]} id="view-categories">
+  <div class="page-title-row">
+    <div><p class="eyebrow">ORGANIZACIÓN DE CARTA</p><h1>Categorías</h1><p class="subheading">Organiza los productos que se muestran en la carta.</p></div>
+    <button class="btn btn-primary" data-action="new-category">＋ Nueva categoría</button>
+  </div>
+  <div class="category-grid" id="categories-grid">
+    {categories.length ? categories.map((category) => <AdminCategoryCard category={category} />) : <div class="empty-box">No hay categorías.</div>}
+  </div>
+</section>

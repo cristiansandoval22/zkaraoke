@@ -1,0 +1,42 @@
+---
+const { categories = [] } = Astro.props;
+---
+
+<div class="category-tabs" id="menu-category-tabs" aria-label="Filtrar por categoría">
+  <button type="button" data-category="all" class="active" aria-pressed="true">
+    Todos
+  </button>
+  {categories.map((category:any) => (
+    <button type="button" data-category={category.id} aria-pressed="false">
+      {category.name}
+    </button>
+  ))}
+</div>
+
+<style>
+  .category-tabs {
+    display: flex;
+    gap: 7px;
+    overflow-x: auto;
+    margin-bottom: 16px;
+    padding-bottom: 6px;
+    scrollbar-width: none;
+  }
+
+  .category-tabs button {
+    flex: 0 0 auto;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    background: #1b1b28;
+    color: #c1bdce;
+    padding: 9px 14px;
+    font-size: 10px;
+    font-weight: 700;
+  }
+
+  .category-tabs button.active {
+    border-color: #7656f3;
+    background: #7656f3;
+    color: white;
+  }
+</style>
